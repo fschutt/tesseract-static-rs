@@ -13,4 +13,4 @@ libc = "*"
 
 [build-dependencies]
 bindgen = "*"
-cc = "*"
+cmake = "0.1.49"

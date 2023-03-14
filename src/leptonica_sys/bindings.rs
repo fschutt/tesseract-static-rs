@@ -81,7 +81,7 @@ where
     }
 }
 pub const LIBLEPT_MAJOR_VERSION: u32 = 1;
-pub const LIBLEPT_MINOR_VERSION: u32 = 83;
+pub const LIBLEPT_MINOR_VERSION: u32 = 84;
 pub const LIBLEPT_PATCH_VERSION: u32 = 0;
 pub const __DARWIN_ONLY_64_BIT_INO_T: u32 = 1;
 pub const __DARWIN_ONLY_UNIX_CONFORMANCE: u32 = 1;
@@ -615,16 +615,17 @@ pub const __GNUC_VA_LIST: u32 = 1;
 pub const HAVE_LIBJPEG: u32 = 0;
 pub const HAVE_LIBTIFF: u32 = 0;
 pub const HAVE_LIBPNG: u32 = 0;
+pub const HAVE_LIBZ: u32 = 0;
 pub const HAVE_LIBGIF: u32 = 0;
 pub const HAVE_LIBUNGIF: u32 = 0;
 pub const HAVE_LIBWEBP: u32 = 0;
 pub const HAVE_LIBWEBP_ANIM: u32 = 0;
 pub const HAVE_LIBJP2K: u32 = 0;
-pub const USE_BMPIO: u32 = 0;
+pub const USE_BMPIO: u32 = 1;
 pub const USE_PNMIO: u32 = 1;
-pub const USE_JP2KHEADER: u32 = 0;
-pub const USE_PDFIO: u32 = 0;
-pub const USE_PSIO: u32 = 0;
+pub const USE_JP2KHEADER: u32 = 1;
+pub const USE_PDFIO: u32 = 1;
+pub const USE_PSIO: u32 = 1;
 pub const HAVE_FMEMOPEN: u32 = 1;
 pub const HAVE_FSTATAT: u32 = 0;
 pub const HAVE_DIRFD: u32 = 0;
@@ -13608,9 +13609,10 @@ extern "C" {
         pixs: *mut PIX,
         factor: l_int32,
         halfw: l_int32,
-        delta: l_float32,
+        skip: l_int32,
         pthresh: *mut l_int32,
         ppixd: *mut *mut PIX,
+        pnahisto: *mut *mut NUMA,
         ppixhisto: *mut *mut PIX,
     ) -> l_ok;
 }
@@ -13867,7 +13869,7 @@ extern "C" {
 }
 extern "C" {
     pub fn boxGetGeometry(
-        box_: *mut BOX,
+        box_: *const BOX,
         px: *mut l_int32,
         py: *mut l_int32,
         pw: *mut l_int32,
@@ -13879,7 +13881,7 @@ extern "C" {
 }
 extern "C" {
     pub fn boxGetSideLocations(
-        box_: *mut BOX,
+        box_: *const BOX,
         pl: *mut l_int32,
         pr: *mut l_int32,
         pt: *mut l_int32,
@@ -13917,7 +13919,7 @@ extern "C" {
     pub fn boxaExtendArrayToSize(boxa: *mut BOXA, size: usize) -> l_ok;
 }
 extern "C" {
-    pub fn boxaGetCount(boxa: *mut BOXA) -> l_int32;
+    pub fn boxaGetCount(boxa: *const BOXA) -> l_int32;
 }
 extern "C" {
     pub fn boxaGetValidCount(boxa: *mut BOXA) -> l_int32;
@@ -14197,11 +14199,11 @@ extern "C" {
     ) -> l_ok;
 }
 extern "C" {
-    pub fn boxGetCenter(box_: *mut BOX, pcx: *mut l_float32, pcy: *mut l_float32) -> l_ok;
+    pub fn boxGetCenter(box_: *const BOX, pcx: *mut l_float32, pcy: *mut l_float32) -> l_ok;
 }
 extern "C" {
     pub fn boxIntersectByLine(
-        box_: *mut BOX,
+        box_: *const BOX,
         x: l_int32,
         y: l_int32,
         slope: l_float32,
@@ -21237,6 +21239,9 @@ extern "C" {
     pub fn l_CIDataDestroy(pcid: *mut *mut L_COMP_DATA);
 }
 extern "C" {
+    pub fn getPdfPageCount(fname: *const ::std::os::raw::c_char, pnpages: *mut l_int32) -> l_ok;
+}
+extern "C" {
     pub fn l_pdfSetG4ImageMask(flag: l_int32);
 }
 extern "C" {
@@ -25677,7 +25682,7 @@ extern "C" {
     pub fn recogModifyTemplate(recog: *mut L_RECOG, pixs: *mut PIX) -> *mut PIX;
 }
 extern "C" {
-    pub fn recogAverageSamples(precog: *mut *mut L_RECOG, debug: l_int32) -> l_int32;
+    pub fn recogAverageSamples(recog: *mut L_RECOG, debug: l_int32) -> l_int32;
 }
 extern "C" {
     pub fn pixaAccumulateSamples(
@@ -25789,7 +25794,7 @@ extern "C" {
     ) -> l_ok;
 }
 extern "C" {
-    pub fn recogDebugAverages(precog: *mut *mut L_RECOG, debug: l_int32) -> l_ok;
+    pub fn recogDebugAverages(recog: *mut L_RECOG, debug: l_int32) -> l_ok;
 }
 extern "C" {
     pub fn recogShowAverageTemplates(recog: *mut L_RECOG) -> l_int32;
@@ -26470,6 +26475,15 @@ extern "C" {
     pub fn pixScaleBySampling(pixs: *mut PIX, scalex: l_float32, scaley: l_float32) -> *mut PIX;
 }
 extern "C" {
+    pub fn pixScaleBySamplingWithShift(
+        pixs: *mut PIX,
+        scalex: l_float32,
+        scaley: l_float32,
+        shiftx: l_float32,
+        shifty: l_float32,
+    ) -> *mut PIX;
+}
+extern "C" {
     pub fn pixScaleBySamplingToSize(pixs: *mut PIX, wd: l_int32, hd: l_int32) -> *mut PIX;
 }
 extern "C" {
@@ -26509,6 +26523,15 @@ extern "C" {
 }
 extern "C" {
     pub fn pixScaleBinary(pixs: *mut PIX, scalex: l_float32, scaley: l_float32) -> *mut PIX;
+}
+extern "C" {
+    pub fn pixScaleBinaryWithShift(
+        pixs: *mut PIX,
+        scalex: l_float32,
+        scaley: l_float32,
+        shiftx: l_float32,
+        shifty: l_float32,
+    ) -> *mut PIX;
 }
 extern "C" {
     pub fn pixScaleToGray(pixs: *mut PIX, scalefactor: l_float32) -> *mut PIX;
@@ -27711,6 +27734,12 @@ extern "C" {
 }
 extern "C" {
     pub fn lept_roundftoi(fval: l_float32) -> l_int32;
+}
+extern "C" {
+    pub fn lept_floor(fval: l_float32) -> l_int32;
+}
+extern "C" {
+    pub fn lept_ceiling(fval: l_float32) -> l_int32;
 }
 extern "C" {
     pub fn l_hashStringToUint64(str_: *const ::std::os::raw::c_char, phash: *mut l_uint64) -> l_ok;
