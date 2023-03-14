@@ -18,6 +18,12 @@ impl AsRef<crate::leptonica_sys::Boxa> for Boxa {
     }
 }
 
+impl AsMut<crate::leptonica_sys::Boxa> for Boxa {
+    fn as_mut(&mut self) -> &mut crate::leptonica_sys::Boxa {
+        unsafe { &mut *self.0 }
+    }
+}
+
 impl Boxa {
     /// Create a new Boxa from a pointer
     ///
@@ -42,14 +48,20 @@ impl Boxa {
     }
 
     /// Safely borrow the nth item
-    pub fn get(&self, i: isize) -> Option<crate::leptonica_plumbing::BorrowedBox> {
-        let lboxa: &crate::leptonica_sys::Boxa = self.as_ref();
-        if lboxa.n <= std::convert::TryFrom::try_from(i).ok()? {
+    pub fn get<'b>(&'b mut self, i: isize) -> Option<crate::leptonica_plumbing::BorrowedBox<'b>> {
+        let lboxa: &mut crate::leptonica_sys::Boxa = self.as_mut();
+        if unsafe { crate::leptonica_sys::boxaGetCount(lboxa) }
+            <= std::convert::TryFrom::try_from(i).ok()?
+        {
             None
         } else {
             unsafe {
                 Some(crate::leptonica_plumbing::BorrowedBox::new(
-                    &*lboxa.box_.offset(i),
+                    core::mem::transmute(&crate::leptonica_sys::boxaGetBox(
+                        lboxa,
+                        i as i32,
+                        crate::leptonica_sys::L_COPY as _,
+                    )),
                 ))
             }
         }

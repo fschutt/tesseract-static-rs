@@ -1,5 +1,5 @@
 use crate::leptonica_sys::{pixDestroy, pixRead, pixReadMem};
-use std::convert::{AsRef, TryInto};
+use std::convert::AsRef;
 use std::{ffi::CStr, num::TryFromIntError};
 use thiserror::Error;
 
@@ -71,7 +71,7 @@ impl Pix {
     ///
     /// Read an image from memory
     pub fn read_mem(img: &[u8]) -> Result<Self, PixReadMemError> {
-        let ptr = unsafe { pixReadMem(img.as_ptr(), img.len().try_into()?) };
+        let ptr = unsafe { pixReadMem(img.as_ptr(), img.len()) };
         if ptr.is_null() {
             Err(PixReadMemError::NullPtr)
         } else {

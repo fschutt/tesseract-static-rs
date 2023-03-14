@@ -21,6 +21,12 @@ impl AsRef<crate::leptonica_sys::Pixa> for Pixa {
     }
 }
 
+impl AsMut<crate::leptonica_sys::Pixa> for Pixa {
+    fn as_mut(&mut self) -> &mut crate::leptonica_sys::Pixa {
+        unsafe { &mut *self.0 }
+    }
+}
+
 impl Pixa {
     /// Create a new Pixa from a pointer
     ///
@@ -43,14 +49,20 @@ impl Pixa {
     }
 
     /// Safely borrow the nth item
-    pub fn get_pix(&self, i: isize) -> Option<crate::leptonica_plumbing::BorrowedPix> {
-        let lpixa: &crate::leptonica_sys::Pixa = self.as_ref();
-        if lpixa.n <= std::convert::TryFrom::try_from(i).ok()? {
+    pub fn get_pix(&mut self, i: isize) -> Option<crate::leptonica_plumbing::BorrowedPix> {
+        let lpixa: &mut crate::leptonica_sys::Pixa = self.as_mut();
+        if unsafe { crate::leptonica_sys::pixaGetCount(lpixa) }
+            <= std::convert::TryFrom::try_from(i).ok()?
+        {
             None
         } else {
             unsafe {
                 Some(crate::leptonica_plumbing::BorrowedPix::new(
-                    *lpixa.pix.offset(i),
+                    crate::leptonica_sys::pixaGetPix(
+                        lpixa,
+                        i as _,
+                        crate::leptonica_sys::L_COPY as _,
+                    ),
                 ))
             }
         }

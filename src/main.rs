@@ -27,7 +27,7 @@ fn main() {
 
     let i: usize = [0; 10]
         .par_iter()
-        .map(|i| unsafe { run_tesseract_test() }.len())
+        .map(|_| unsafe { run_tesseract_test() }.len())
         .sum();
 
     println!("{i}");
