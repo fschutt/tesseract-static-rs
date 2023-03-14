@@ -1,12 +1,9 @@
-extern crate leptonica_sys;
-extern crate thiserror;
-
-use self::thiserror::Error;
-use leptonica_sys::{boxCreateValid, boxDestroy, l_int32};
+use crate::leptonica_sys::{boxCreateValid, boxDestroy, l_int32};
+use thiserror::Error;
 
 /// Wrapper around Leptonica's [`Box`](https://tpgit.github.io/Leptonica/struct_box.html) structure
 #[derive(Debug, PartialEq)]
-pub struct Box(*mut leptonica_sys::Box);
+pub struct Box(*mut crate::leptonica_sys::Box);
 
 /// Error returned by Box::create_valid
 #[derive(Debug, Error)]
@@ -21,8 +18,8 @@ impl Drop for Box {
     }
 }
 
-impl AsRef<leptonica_sys::Box> for Box {
-    fn as_ref(&self) -> &leptonica_sys::Box {
+impl AsRef<crate::leptonica_sys::Box> for Box {
+    fn as_ref(&self) -> &crate::leptonica_sys::Box {
         unsafe { &*self.0 }
     }
 }

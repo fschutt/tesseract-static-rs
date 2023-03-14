@@ -8,3 +8,9 @@ build = "build.rs"
 
 [dependencies]
 rayon = "*"
+thiserror = "*"
+libc = "*"
+
+[build-dependencies]
+bindgen = "*"
+cc = "*"

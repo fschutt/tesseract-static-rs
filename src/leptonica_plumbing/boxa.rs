@@ -1,11 +1,8 @@
-extern crate leptonica_sys;
-extern crate thiserror;
-
-use leptonica_sys::{boxaCreate, boxaDestroy, l_int32};
+use crate::leptonica_sys::{boxaCreate, boxaDestroy, l_int32};
 
 /// Wrapper around Leptonica's [`Boxa`](https://tpgit.github.io/Leptonica/struct_boxa.html) structure
 #[derive(Debug, PartialEq)]
-pub struct Boxa(*mut leptonica_sys::Boxa);
+pub struct Boxa(*mut crate::leptonica_sys::Boxa);
 
 impl Drop for Boxa {
     fn drop(&mut self) {
@@ -15,8 +12,8 @@ impl Drop for Boxa {
     }
 }
 
-impl AsRef<leptonica_sys::Boxa> for Boxa {
-    fn as_ref(&self) -> &leptonica_sys::Boxa {
+impl AsRef<crate::leptonica_sys::Boxa> for Boxa {
+    fn as_ref(&self) -> &crate::leptonica_sys::Boxa {
         unsafe { &*self.0 }
     }
 }
@@ -28,7 +25,7 @@ impl Boxa {
     ///
     /// The pointer must be to a valid Boxa struct.
     /// The Boxa struct must not be mutated whilst the wrapper exists.
-    pub unsafe fn new_from_pointer(p: *mut leptonica_sys::Boxa) -> Self {
+    pub unsafe fn new_from_pointer(p: *mut crate::leptonica_sys::Boxa) -> Self {
         Self(p)
     }
 
@@ -45,12 +42,16 @@ impl Boxa {
     }
 
     /// Safely borrow the nth item
-    pub fn get(&self, i: isize) -> Option<crate::BorrowedBox> {
-        let lboxa: &leptonica_sys::Boxa = self.as_ref();
+    pub fn get(&self, i: isize) -> Option<crate::leptonica_plumbing::BorrowedBox> {
+        let lboxa: &crate::leptonica_sys::Boxa = self.as_ref();
         if lboxa.n <= std::convert::TryFrom::try_from(i).ok()? {
             None
         } else {
-            unsafe { Some(crate::BorrowedBox::new(&*lboxa.box_.offset(i))) }
+            unsafe {
+                Some(crate::leptonica_plumbing::BorrowedBox::new(
+                    &*lboxa.box_.offset(i),
+                ))
+            }
         }
     }
 }

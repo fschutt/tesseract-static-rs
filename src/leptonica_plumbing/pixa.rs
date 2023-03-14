@@ -1,12 +1,11 @@
-extern crate leptonica_sys;
 extern crate thiserror;
 
-use leptonica_sys::{pixaDestroy, pixaReadMultipageTiff};
+use crate::leptonica_sys::{pixaDestroy, pixaReadMultipageTiff};
 use std::ffi::CStr;
 
 /// Wrapper around Leptonica's [`Pixa`](https://tpgit.github.io/Leptonica/struct_pixa.html) structure
 #[derive(Debug, PartialEq)]
-pub struct Pixa(*mut leptonica_sys::Pixa);
+pub struct Pixa(*mut crate::leptonica_sys::Pixa);
 
 impl Drop for Pixa {
     fn drop(&mut self) {
@@ -16,8 +15,8 @@ impl Drop for Pixa {
     }
 }
 
-impl AsRef<leptonica_sys::Pixa> for Pixa {
-    fn as_ref(&self) -> &leptonica_sys::Pixa {
+impl AsRef<crate::leptonica_sys::Pixa> for Pixa {
+    fn as_ref(&self) -> &crate::leptonica_sys::Pixa {
         unsafe { &*self.0 }
     }
 }
@@ -29,7 +28,7 @@ impl Pixa {
     ///
     /// The pointer must be to a valid Pixa struct.
     /// The Pixa struct must not be mutated whilst the wrapper exists.
-    pub unsafe fn new_from_pointer(p: *mut leptonica_sys::Pixa) -> Self {
+    pub unsafe fn new_from_pointer(p: *mut crate::leptonica_sys::Pixa) -> Self {
         Self(p)
     }
 
@@ -44,12 +43,16 @@ impl Pixa {
     }
 
     /// Safely borrow the nth item
-    pub fn get_pix(&self, i: isize) -> Option<crate::BorrowedPix> {
-        let lpixa: &leptonica_sys::Pixa = self.as_ref();
+    pub fn get_pix(&self, i: isize) -> Option<crate::leptonica_plumbing::BorrowedPix> {
+        let lpixa: &crate::leptonica_sys::Pixa = self.as_ref();
         if lpixa.n <= std::convert::TryFrom::try_from(i).ok()? {
             None
         } else {
-            unsafe { Some(crate::BorrowedPix::new(*lpixa.pix.offset(i))) }
+            unsafe {
+                Some(crate::leptonica_plumbing::BorrowedPix::new(
+                    *lpixa.pix.offset(i),
+                ))
+            }
         }
     }
 }

@@ -5,8 +5,8 @@ mod boxa;
 mod pix;
 mod pixa;
 
-use self::leptonica_sys::{free, getImagelibVersions, getLeptonicaVersion};
-pub use leptonica_sys;
+pub use crate::leptonica_sys;
+use crate::leptonica_sys::{free, getImagelibVersions, getLeptonicaVersion};
 use libc::c_char;
 use std::ffi::{c_void, CStr};
 

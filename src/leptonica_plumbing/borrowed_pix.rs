@@ -1,3 +1,4 @@
+use crate::leptonica_sys;
 use std::marker::PhantomData;
 
 /// Borrowed wrapper around Leptonica's [`Pix`](https://tpgit.github.io/Leptonica/struct_pix.html) structure

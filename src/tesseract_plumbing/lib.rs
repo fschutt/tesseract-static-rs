@@ -1,9 +1,10 @@
 mod tess_base_api;
 mod text;
 
-use self::tesseract_sys::TessVersion;
-pub use leptonica_plumbing;
-pub use leptonica_plumbing::leptonica_sys;
+pub use crate::leptonica_plumbing;
+pub use crate::leptonica_sys;
+pub use crate::tesseract_sys;
+use crate::tesseract_sys::TessVersion;
 use std::ffi::CStr;
 pub use tess_base_api::{
     TessBaseApi, TessBaseApiGetAltoTextError, TessBaseApiGetHocrTextError,
@@ -11,7 +12,6 @@ pub use tess_base_api::{
     TessBaseApiGetWordStrBoxTextError, TessBaseApiInitError, TessBaseApiRecogniseError,
     TessBaseApiSetImageSafetyError, TessBaseApiSetVariableError,
 };
-pub use tesseract_sys;
 pub use text::Text;
 
 /// Wrapper for [`Version`](https://tesseract-ocr.github.io/tessapi/5.x/a02438.html#a3785779c909fcdd77e24b340f5913e4b)

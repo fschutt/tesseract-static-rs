@@ -1,6 +1,4 @@
-extern crate tesseract_sys;
-
-use self::tesseract_sys::TessDeleteText;
+use crate::tesseract_sys::TessDeleteText;
 use std::convert::AsRef;
 use std::ffi::CStr;
 use std::os::raw::c_char;

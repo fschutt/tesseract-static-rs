@@ -1,7 +1,7 @@
-extern crate tesseract_sys;
-extern crate thiserror;
-
-use self::tesseract_sys::{
+use crate::leptonica_plumbing;
+use crate::leptonica_plumbing::Pix;
+use crate::tesseract::tesseract_plumbing::Text;
+use crate::tesseract_sys::{
     TessBaseAPIAllWordConfidences, TessBaseAPICreate, TessBaseAPIDelete, TessBaseAPIGetAltoText,
     TessBaseAPIGetComponentImages, TessBaseAPIGetHOCRText, TessBaseAPIGetInputImage,
     TessBaseAPIGetLSTMBoxText, TessBaseAPIGetSourceYResolution, TessBaseAPIGetTsvText,
@@ -10,19 +10,17 @@ use self::tesseract_sys::{
     TessBaseAPISetRectangle, TessBaseAPISetSourceResolution, TessBaseAPISetVariable,
     TessDeleteIntArray, TessOcrEngineMode, TessPageIteratorLevel,
 };
-use self::thiserror::Error;
-use crate::Text;
-use leptonica_plumbing::Pix;
 use std::convert::TryInto;
 use std::ffi::CStr;
 use std::ops::{Deref, DerefMut};
 use std::os::raw::c_int;
 use std::ptr;
 use std::slice;
+use thiserror::Error;
 
 /// Wrapper around [`tesseract::TessBaseAPI`](https://tesseract-ocr.github.io/tessapi/5.x/a02438.html)
 #[derive(Debug)]
-pub struct TessBaseApi(*mut tesseract_sys::TessBaseAPI);
+pub struct TessBaseApi(*mut crate::tesseract_sys::TessBaseAPI);
 
 unsafe impl Send for TessBaseApi {}
 
