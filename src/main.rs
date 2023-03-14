@@ -18,6 +18,9 @@ unsafe fn run_tesseract_test() -> String {
 
 fn main() {
     use rayon::prelude::*;
+
+    println!("{}", unsafe { run_tesseract_test() });
+    
     let now = std::time::Instant::now();
     for i in 0..10 {
         println!("{i} {}", unsafe { run_tesseract_test() }.len());
