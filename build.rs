@@ -4,8 +4,7 @@ use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-// tesseract path: /usr/local/lib/libtesseract.a (4MB)
-// leptonica path: /usr/local/lib/libleptonica.a (3MB)
+/*
 
 fn generate_tesseract_bindings() {
     let path1 = Path::new(concat!(
@@ -119,6 +118,8 @@ fn public_types_bindings(clang_extra_include: &[String]) -> String {
 fn public_types_bindings(_clang_extra_include: &[String]) -> &'static str {
     include_str!("src/tesseract_sys/public_types_bindings_mac.rs")
 }
+
+*/
 
 fn compile_leptonica() -> (PathBuf, Vec<PathBuf>) {
     let base_dir = Path::new(concat!(
