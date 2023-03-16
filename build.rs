@@ -1,7 +1,6 @@
 extern crate bindgen;
 
 use std::env;
-use std::fs;
 use std::path::{Path, PathBuf};
 
 use fs_extra::dir::CopyOptions;
@@ -246,11 +245,11 @@ fn compile_tesseract() -> (PathBuf, Vec<PathBuf>) {
 }
 
 fn main() {
-    let (leptonica_lib, leptonica_includes) = compile_leptonica();
+    let (leptonica_lib, _leptonica_includes) = compile_leptonica();
 
     // generate_leptonica_bindings(&leptonica_includes);
 
-    let (tesseract_lib, tesseract_includes) = compile_tesseract();
+    let (tesseract_lib, _tesseract_includes) = compile_tesseract();
 
     // generate_tesseract_bindings(&tesseract_includes);
 
