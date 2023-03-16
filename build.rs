@@ -1,5 +1,3 @@
-extern crate bindgen;
-
 use std::env;
 use std::path::{Path, PathBuf};
 
@@ -122,12 +120,14 @@ fn public_types_bindings(_clang_extra_include: &[String]) -> &'static str {
 
 */
 
-fn compile_leptonica() -> (PathBuf, Vec<PathBuf>) {
-    let source_dir = Path::new(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/src/third_party/leptonica"
-    ));
+fn download_leptonica() -> PathBuf {
+    let source = "https://github.com/DanBloomberg/leptonica/archive/refs/tags/1.83.1.tar.gz";
+    let target = Path::new(&env::var("OUT_DIR").unwrap()).join("leptonica");
+    std::fs::create_dir_all(&target).unwrap();
+    download_and_unpack(source, &target)
+}
 
+fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
     let out_dir = std::env::var("OUT_DIR").expect("no out dir");
     let base_dir = Path::new(&out_dir).join("leptonica");
 
@@ -135,7 +135,9 @@ fn compile_leptonica() -> (PathBuf, Vec<PathBuf>) {
 
     let _ = fs_extra::dir::copy(&source_dir, &base_dir, &CopyOptions::default());
 
-    let base_dir = base_dir.join("leptonica");
+    let base_dir = base_dir.join("leptonica").join("leptonica-1.83.1");
+
+    println!("{}", base_dir.display());
 
     // Disable all image I/O except bmp and pnm files
     let environ_h_path = base_dir.join("src").join("environ.h");
@@ -209,12 +211,28 @@ fn compile_leptonica() -> (PathBuf, Vec<PathBuf>) {
     (library_path, vec![dst.join("include").join("leptonica")])
 }
 
-fn compile_tesseract() -> (PathBuf, Vec<PathBuf>) {
-    let source_dir = Path::new(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/src/third_party/tesseract"
-    ));
+fn download_tesseract() -> PathBuf {
+    let source = "https://github.com/tesseract-ocr/tesseract/archive/refs/tags/5.3.0.tar.gz";
+    let target = Path::new(&env::var("OUT_DIR").unwrap()).join("tesseract");
+    std::fs::create_dir_all(&target).unwrap();
+    download_and_unpack(source, &target)
+}
 
+fn download_and_unpack(url: &str, target: &PathBuf) -> PathBuf {
+    use flate2::read::GzDecoder;
+    use std::fs::File;
+    use tar::Archive;
+
+    let body = reqwest::blocking::get(url).unwrap().bytes().unwrap();
+    std::fs::write(target.join("out.tar.gz"), body.as_ref()).unwrap();
+    let tar_gz = File::open(&target.join("out.tar.gz")).unwrap();
+    let tar = GzDecoder::new(tar_gz);
+    let mut archive = Archive::new(tar);
+    archive.unpack(target).unwrap();
+    target.clone()
+}
+
+fn compile_tesseract(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
     let out_dir = std::env::var("OUT_DIR").expect("no out dir");
     let base_dir = Path::new(&out_dir).join("tesseract");
 
@@ -222,7 +240,7 @@ fn compile_tesseract() -> (PathBuf, Vec<PathBuf>) {
 
     let _ = fs_extra::dir::copy(&source_dir, &base_dir, &CopyOptions::default());
 
-    let base_dir = base_dir.join("tesseract");
+    let base_dir = base_dir.join("tesseract").join("tesseract-5.3.0");
 
     let dst = cmake::Config::new(&base_dir)
         .always_configure(true)
@@ -245,11 +263,11 @@ fn compile_tesseract() -> (PathBuf, Vec<PathBuf>) {
 }
 
 fn main() {
-    let (leptonica_lib, _leptonica_includes) = compile_leptonica();
+    let (leptonica_lib, _leptonica_includes) = compile_leptonica(&download_leptonica());
 
     // generate_leptonica_bindings(&leptonica_includes);
 
-    let (tesseract_lib, _tesseract_includes) = compile_tesseract();
+    let (tesseract_lib, _tesseract_includes) = compile_tesseract(&download_tesseract());
 
     // generate_tesseract_bindings(&tesseract_includes);
 

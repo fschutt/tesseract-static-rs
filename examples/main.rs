@@ -1,4 +1,4 @@
-use libtesseract::tesseract::Tesseract;
+use tesseract_static::tesseract::Tesseract;
 
 unsafe fn run_tesseract_test() -> String {
     Tesseract::new(
@@ -16,7 +16,7 @@ fn main() {
     use rayon::prelude::*;
 
     let dir = std::env::temp_dir().join("eng.traineddata");
-    std::fs::write(&dir, libtesseract::TRAINEDDATA_ENG).unwrap();
+    std::fs::write(&dir, include_bytes!("../eng.traineddata")).unwrap();
 
     println!("{}", unsafe { run_tesseract_test() });
 
