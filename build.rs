@@ -4,6 +4,8 @@ use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use fs_extra::dir::CopyOptions;
+
 /*
 
 fn generate_tesseract_bindings() {
@@ -122,10 +124,19 @@ fn public_types_bindings(_clang_extra_include: &[String]) -> &'static str {
 */
 
 fn compile_leptonica() -> (PathBuf, Vec<PathBuf>) {
-    let base_dir = Path::new(concat!(
+    let source_dir = Path::new(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/src/third_party/leptonica"
     ));
+
+    let out_dir = std::env::var("OUT_DIR").expect("no out dir");
+    let base_dir = Path::new(&out_dir).join("leptonica");
+
+    let _ = std::fs::create_dir_all(&base_dir);
+
+    let _ = fs_extra::dir::copy(&source_dir, &base_dir, &CopyOptions::default());
+
+    let base_dir = base_dir.join("leptonica");
 
     // Disable all image I/O except bmp and pnm files
     let environ_h_path = base_dir.join("src").join("environ.h");
@@ -200,10 +211,19 @@ fn compile_leptonica() -> (PathBuf, Vec<PathBuf>) {
 }
 
 fn compile_tesseract() -> (PathBuf, Vec<PathBuf>) {
-    let base_dir = Path::new(concat!(
+    let source_dir = Path::new(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/src/third_party/tesseract"
     ));
+
+    let out_dir = std::env::var("OUT_DIR").expect("no out dir");
+    let base_dir = Path::new(&out_dir).join("tesseract");
+
+    let _ = std::fs::create_dir_all(&base_dir);
+
+    let _ = fs_extra::dir::copy(&source_dir, &base_dir, &CopyOptions::default());
+
+    let base_dir = base_dir.join("tesseract");
 
     let dst = cmake::Config::new(&base_dir)
         .always_configure(true)
