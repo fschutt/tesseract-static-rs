@@ -248,7 +248,7 @@ fn compile_tesseract(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
         .configure_arg("-DOPENMP_BUILD=OFF")
         .configure_arg("-DBUILD_TRAINING_TOOLS=OFF")
         .configure_arg("-DBUILD_TESTS=OFF")
-        .configure_arg("-DDBUILD_SHARED_LIBS=ON")
+        .configure_arg("-DBUILD_SHARED_LIBS=OFF")
         .configure_arg("-DENABLE_LTO=ON")
         .configure_arg("-DDISABLE_ARCHIVE=ON")
         .configure_arg("-DDISABLE_CURL=ON")
