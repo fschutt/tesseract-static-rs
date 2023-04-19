@@ -191,7 +191,7 @@ fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
         .configure_arg("-DENABLE_TIFF=OFF")
         .configure_arg("-DENABLE_WEBP=OFF")
         .configure_arg("-DENABLE_OPENJPEG=OFF")
-        .configure_arg("-DHAVE_LIBZ=OFF")
+        .configure_arg("-DHAVE_LIBZ=0")
         .configure_arg("-DNO_CONSOLE_IO=ON")
         .build();
 
