@@ -171,17 +171,7 @@ fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
 
     // configure cmake/Configure.cmake
     let configure_cmake_path = base_dir.join("cmake").join("Configure.cmake");
-    let configure_cmake = std::fs::read_to_string(&configure_cmake_path)
-        .unwrap()
-        .replace("HAVE_LIBGIF 1", "HAVE_LIBGIF 0")
-        .replace("HAVE_LIBJPEG 1", "HAVE_LIBJPEG 0")
-        .replace("HAVE_LIBJP2K 1", "HAVE_LIBJP2K 0")
-        .replace("HAVE_LIBPNG 1", "HAVE_LIBPNG 0")
-        .replace("HAVE_LIBTIFF 1", "HAVE_LIBTIFF 0")
-        .replace("HAVE_LIBWEBP 1", "HAVE_LIBWEBP 0")
-        .replace("HAVE_LIBWEBP_ANIM 1", "HAVE_LIBWEBP_ANIM 0")
-        .replace("HAVE_LIBZ 1", "HAVE_LIBZ 0");
-    std::fs::write(configure_cmake_path, configure_cmake).unwrap();
+    std::fs::write(configure_cmake_path, include_bytes!("./leptonica-CmakeLists.txt")).unwrap();
 
     // Remove png, jpen, etc. from makefile.static
     let makefile_static_path = base_dir.join("prog").join("makefile.static");
@@ -200,7 +190,9 @@ fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
     let target_endian = "#define L_LITTLE_ENDIAN\n";
     std::fs::write(base_dir.join("src").join("endianness.h"), target_endian).unwrap();
 
-    let dst = cmake::Config::new(&base_dir).always_configure(true).build();
+    let dst = cmake::Config::new(&base_dir)
+        .always_configure(true)
+        .build();
 
     let library_path = dst
         .join("lib")
@@ -251,6 +243,8 @@ fn compile_tesseract(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
         .configure_arg("-DBUILD_TRAINING_TOOLS=OFF")
         .configure_arg("-DBUILD_TESTS=OFF")
         .configure_arg("-DUSE_SYSTEM_ICU=ON")
+        .configure_arg("-DSW_BUILD=OFF")
+        .configure_arg("-DBUILD_PROG=OFF")
         .build();
 
     let library_path = dst
