@@ -121,7 +121,7 @@ fn public_types_bindings(_clang_extra_include: &[String]) -> &'static str {
 */
 
 fn download_leptonica() -> PathBuf {
-    let source = "https://github.com/DanBloomberg/leptonica/archive/refs/tags/1.83.1.tar.gz";
+    let source = "https://github.com/fschutt/tesseract-static-rs/files/11274620/leptonica-1b1d7ade6d753e8af2d023cff15d7862cd7b8413.tar.gz";
     let target = Path::new(&env::var("OUT_DIR").unwrap()).join("leptonica");
     std::fs::create_dir_all(&target).unwrap();
     download_and_unpack(source, &target)
@@ -135,34 +135,20 @@ fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
 
     let _ = fs_extra::dir::copy(&source_dir, &base_dir, &CopyOptions::default());
 
-    let base_dir = base_dir.join("leptonica").join("leptonica-1.83.1");
+    let base_dir = base_dir
+        .join("leptonica")
+        .join("leptonica-1b1d7ade6d753e8af2d023cff15d7862cd7b8413");
 
-    println!("{}", base_dir.display());
+    eprintln!("base dir {}", base_dir.display());
 
     // Disable all image I/O except bmp and pnm files
     let environ_h_path = base_dir.join("src").join("environ.h");
     let environ_h = std::fs::read_to_string(&environ_h_path)
         .unwrap()
         .replace(
-            "#define  HAVE_LIBJPEG       1",
-            "#define  HAVE_LIBJPEG       0",
-        )
-        .replace(
-            "#define  HAVE_LIBTIFF       1",
-            "#define  HAVE_LIBTIFF       0",
-        )
-        .replace(
-            "#define  HAVE_LIBPNG        1",
-            "#define  HAVE_LIBPNG        0",
-        )
-        .replace(
             "#define  HAVE_LIBZ          1",
             "#define  HAVE_LIBZ          0",
         )
-        .replace("#define  HAVE_LIBJPEG       0", "#undef HAVE_LIBJPEG")
-        .replace("#define  HAVE_LIBTIFF       0", "#undef HAVE_LIBTIFF")
-        .replace("#define  HAVE_LIBPNG        0", "#undef HAVE_LIBPNG")
-        .replace("#define  HAVE_LIBZ          0", "#undef HAVE_LIBZ")
         .replace(
             "#ifdef  NO_CONSOLE_IO",
             "#define NO_CONSOLE_IO\n#ifdef  NO_CONSOLE_IO",
@@ -171,7 +157,11 @@ fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
 
     // configure cmake/Configure.cmake
     let configure_cmake_path = base_dir.join("cmake").join("Configure.cmake");
-    std::fs::write(configure_cmake_path, include_bytes!("./leptonica-CmakeLists.txt")).unwrap();
+    std::fs::write(
+        configure_cmake_path,
+        include_bytes!("./leptonica-CmakeLists.txt"),
+    )
+    .unwrap();
 
     // Remove png, jpen, etc. from makefile.static
     let makefile_static_path = base_dir.join("prog").join("makefile.static");
@@ -192,7 +182,20 @@ fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
 
     let dst = cmake::Config::new(&base_dir)
         .always_configure(true)
+        .configure_arg("-DBUILD_PROG=OFF")
+        .configure_arg("-DSW_BUILD=OFF")
+        .configure_arg("-DBUILD_SHARED_LIBS=OFF")
+        .configure_arg("-DENABLE_PNG=OFF")
+        .configure_arg("-DENABLE_GIF=OFF")
+        .configure_arg("-DENABLE_JPEG=OFF")
+        .configure_arg("-DENABLE_TIFF=OFF")
+        .configure_arg("-DENABLE_WEBP=OFF")
+        .configure_arg("-DENABLE_OPENJPEG=OFF")
+        .configure_arg("-DHAVE_LIBZ=OFF")
+        .configure_arg("-DNO_CONSOLE_IO=ON")
         .build();
+
+    eprintln!("library path {}", dst.display());
 
     let library_path = dst
         .join("lib")
