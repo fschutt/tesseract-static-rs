@@ -243,10 +243,17 @@ fn compile_tesseract(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
         .configure_arg("-DHAVELIBCURL=OFF")
         .configure_arg("-DHAVE_TIFFIO_H=OFF")
         .configure_arg("-DGRAPHICS_DISABLED=ON")
+        .configure_arg("-DDISABLED_LEGACY_ENGINE=ON")
+        .configure_arg("-DUSE_OPENCL=OFF")
+        .configure_arg("-DOPENMP_BUILD=OFF")
         .configure_arg("-DBUILD_TRAINING_TOOLS=OFF")
         .configure_arg("-DBUILD_TESTS=OFF")
+        .configure_arg("-DDBUILD_SHARED_LIBS=ON")
+        .configure_arg("-DENABLE_LTO=ON")
+        .configure_arg("-DDISABLE_ARCHIVE=ON")
+        .configure_arg("-DDISABLE_CURL=ON")
         .configure_arg("-DUSE_SYSTEM_ICU=ON")
-        .configure_arg("-DSW_BUILD=OFF")
+        .configure_arg("-DINSTALL_CONFIGS=ON")
         .configure_arg("-DBUILD_PROG=OFF")
         .build();
 
