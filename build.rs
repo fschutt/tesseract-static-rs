@@ -298,24 +298,24 @@ fn main() {
 
     // generate_tesseract_bindings(&tesseract_includes);
 
-    println!(
-        "cargo:rustc-link-search={}",
-        leptonica_lib.parent().unwrap().display()
-    );
-    println!(
-        "cargo:rustc-link-search={}",
-        tesseract_lib.parent().unwrap().display()
-    );
-    #[cfg(not(target_os = "windows"))]
+    #[cfg(target_os = "macos")]
     {
+        println!(
+            "cargo:rustc-link-search={}",
+            leptonica_lib.parent().unwrap().display()
+        );
+        println!(
+            "cargo:rustc-link-search={}",
+            tesseract_lib.parent().unwrap().display()
+        );
         println!("cargo:rustc-link-lib=static=tesseract");
         println!("cargo:rustc-link-lib=static=leptonica");
         println!("cargo:rustc-link-lib=static:-bundle=c++"); // link libstdc++ for tesseract
     }
 
-    #[cfg(target_os = "windows")]
+    #[cfg(not(target_os = "macos"))]
     {
-        println!("cargo:rustc-link-lib=static=tesseract53");
-        println!("cargo:rustc-link-lib=static=leptonica-1.84.0");
+        println!("cargo:rustc-link-arg={}", leptonica_lib.display());
+        println!("cargo:rustc-link-arg={}", tesseract_lib.display());
     }
 }
