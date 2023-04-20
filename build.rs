@@ -318,7 +318,6 @@ fn main() {
     {
         println!("cargo:rustc-link-arg={}", leptonica_lib.display());
         println!("cargo:rustc-link-arg={}", tesseract_lib.display());
-        println!("cargo:rustc-link-arg=-lc++");
     }
 
     #[cfg(target_os = "windows")]
