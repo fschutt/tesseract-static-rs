@@ -1,3 +1,5 @@
+extern crate link_cplusplus;
+
 #[path = "leptonica_plumbing/lib.rs"]
 pub mod leptonica_plumbing;
 #[path = "leptonica_sys/lib.rs"]

@@ -16,6 +16,7 @@ exclude = ["testocr.pnm", "deu.traineddata", "eng.traineddata"]
 libc = "0.2.140"
 rayon = "1.7.0"
 thiserror = "1.0.39"
+link-cplusplus = "1.0"
 
 [build-dependencies]
 # bindgen = "0.64.0"
