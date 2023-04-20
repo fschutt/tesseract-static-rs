@@ -324,5 +324,6 @@ fn main() {
     {
         println!("cargo:rustc-link-arg={}", leptonica_lib.display());
         println!("cargo:rustc-link-arg={}", tesseract_lib.display());
+        println!("cargo:rustc-link-lib=dynamic=stdc++"); // link libstdc++ for tesseract
     }
 }
