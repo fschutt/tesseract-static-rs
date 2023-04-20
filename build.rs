@@ -237,7 +237,6 @@ fn download_and_unpack(url: &str, target: &PathBuf) -> PathBuf {
 }
 
 fn compile_tesseract(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
-    println!("cargo:rerun-if-changed=build.rs");
 
     let out_dir = std::env::var("OUT_DIR").expect("no out dir");
     let base_dir = Path::new(&out_dir).join("tesseract");
@@ -247,6 +246,9 @@ fn compile_tesseract(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
     let _ = fs_extra::dir::copy(&source_dir, &base_dir, &CopyOptions::default());
 
     let base_dir = base_dir.join("tesseract").join("tesseract-5.3.0");
+
+    let cmakelists = std::fs::read_to_string(base_dir.join("CMakeLists.txt")).unwrap().replace("set(HAVE_TIFFIO_H ON)", "");
+    std::fs::write(base_dir.join("CMakeLists.txt"), cmakelists).unwrap();
 
     let dst = cmake::Config::new(&base_dir)
         .always_configure(true)
