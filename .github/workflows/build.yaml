@@ -1,0 +1,59 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - 'master'
+    tags:
+      # this is _not_ a regex, see: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#filter-pattern-cheat-sheet
+      - '[0-9]+.[0-9]+.[0-9]+*'
+  pull_request:
+
+jobs:
+  setup:
+    name: Set up
+    runs-on: ubuntu-22.04
+    outputs:
+      VERSION: ${{ steps.setup.outputs.VERSION }}
+      DOING_RELEASE: ${{ steps.setup.outputs.DOING_RELEASE }}
+    steps:
+      - name: Set up env vars
+        id: setup
+        shell: bash
+        run: |
+          VERSION=${GITHUB_REF/refs\/tags\//}
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          DOING_RELEASE=$(echo $VERSION | grep -c '^[0-9]\+\.[0-9]\+\.[0-9]\+\(-\([a-zA-Z]\+\)\?[0-9]*\)\?$' || true)
+          echo "DOING_RELEASE=${DOING_RELEASE}" >> $GITHUB_OUTPUT
+          echo $VERSION
+          echo $DOING_RELEASE
+
+  build:
+    name: Build on ${{ matrix.build }}
+    runs-on: ${{ matrix.os }}
+    needs: setup
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - build: linux-x64
+            os: ubuntu-22.04
+          - build: macos-x64
+            os: macos-11
+          - build: windows-x64
+            os: windows-2019
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.67
+      - name: Setup Linux
+        if: matrix.build == 'linux-x64'
+        run: |
+          sudo apt install pkg-config libgtk-3-dev libssl-dev cmake libsoup2.4-dev libwebkit2gtk-4.0-dev libjavascriptcoregtk-4.0-dev libayatana-appindicator3-dev
+          sudo apt-get update -y
+          sudo apt-get install -y --allow-downgrades libstdc++6 libtinfo5
+          sudo apt-get install --reinstall g++
+      - name: build
+        run: cargo build --release --example main
