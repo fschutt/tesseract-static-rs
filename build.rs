@@ -313,7 +313,14 @@ fn main() {
         println!("cargo:rustc-link-lib=static:-bundle=c++"); // link libstdc++ for tesseract
     }
 
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(target_os = "linux")]
+    {
+        println!("cargo:rustc-link-arg={}", leptonica_lib.display());
+        println!("cargo:rustc-link-arg={}", tesseract_lib.display());
+        println!("cargo:rustc-link-lib=static:-bundle=c++"); // link libstdc++ for tesseract
+    }
+
+    #[cfg(target_os = "windows")]
     {
         println!("cargo:rustc-link-arg={}", leptonica_lib.display());
         println!("cargo:rustc-link-arg={}", tesseract_lib.display());
