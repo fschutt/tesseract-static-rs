@@ -199,7 +199,16 @@ fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
 
     let library_path = dst
         .join("lib")
-        .join("libleptonica.a")
+        .join({
+            #[cfg(not(target_os = "windows"))]
+            {
+                "libleptonica.a"
+            }
+            #[cfg(target_os = "windows")]
+            {
+                "leptonica-1.84.0.lib"
+            }
+        })
         .canonicalize()
         .unwrap();
 
@@ -228,6 +237,8 @@ fn download_and_unpack(url: &str, target: &PathBuf) -> PathBuf {
 }
 
 fn compile_tesseract(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
+    println!("cargo:rerun-if-changed=build.rs");
+
     let out_dir = std::env::var("OUT_DIR").expect("no out dir");
     let base_dir = Path::new(&out_dir).join("tesseract");
 
@@ -255,11 +266,23 @@ fn compile_tesseract(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
         .configure_arg("-DUSE_SYSTEM_ICU=ON")
         .configure_arg("-DINSTALL_CONFIGS=ON")
         .configure_arg("-DBUILD_PROG=OFF")
+        .configure_arg("-DSW_BUILD=OFF")
         .build();
+
+    eprintln!("library path tesseract {}", dst.display());
 
     let library_path = dst
         .join("lib")
-        .join("libtesseract.a")
+        .join({
+            #[cfg(not(target_os = "windows"))]
+            {
+                "libtesseract.a"
+            }
+            #[cfg(target_os = "windows")]
+            {
+                "tesseract53.lib"
+            }
+        })
         .canonicalize()
         .unwrap();
 
@@ -283,7 +306,16 @@ fn main() {
         "cargo:rustc-link-search={}",
         tesseract_lib.parent().unwrap().display()
     );
-    println!("cargo:rustc-link-lib=static=tesseract");
-    println!("cargo:rustc-link-lib=static=leptonica");
-    println!("cargo:rustc-link-lib=static:-bundle=c++"); // link libstdc++ for tesseract
+    #[cfg(not(target_os = "windows"))]
+    {
+        println!("cargo:rustc-link-lib=static=tesseract");
+        println!("cargo:rustc-link-lib=static=leptonica");
+        println!("cargo:rustc-link-lib=static:-bundle=c++"); // link libstdc++ for tesseract
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        println!("cargo:rustc-link-lib=static=tesseract53");
+        println!("cargo:rustc-link-lib=static=leptonica-1.84.0");
+    }
 }
