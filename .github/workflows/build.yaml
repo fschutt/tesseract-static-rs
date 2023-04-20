@@ -50,6 +50,9 @@ jobs:
           toolchain: 1.67
       - name: Setup Linux
         if: matrix.build == 'linux-x64'
-        run: sudo apt-get install g++ cmake libstdc++6
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y --allow-downgrades libstdc++6
+          sudo apt-get install --reinstall g++ cmake libstdc++6
       - name: build
         run: cargo build --release --example main
