@@ -7,7 +7,6 @@ license = "Apache-2.0"
 keywords = ["tesseract", "leptonica", "ocr", "text-recognition"]
 categories = ["computer-vision"]
 edition = "2021"
-build = "build.rs"
 exclude = ["testocr.pnm", "deu.traineddata", "eng.traineddata"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -17,11 +16,11 @@ libc = "0.2.140"
 rayon = "1.7.0"
 thiserror = "1.0.39"
 link-cplusplus = "1.0"
-
-[build-dependencies]
-# bindgen = "0.64.0"
 cmake = "0.1.49"
 fs_extra = "1.3.0"
 flate2 = "1.0.25"
 tar = "0.4.38"
 reqwest = { version = "0.11.14", features = ["blocking"] }
+
+[build-dependencies]
+# bindgen = "0.64.0"
