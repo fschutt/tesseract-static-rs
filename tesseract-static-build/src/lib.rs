@@ -74,6 +74,7 @@ pub fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
         .configure_arg("-DENABLE_WEBP=OFF")
         .configure_arg("-DENABLE_OPENJPEG=OFF")
         .configure_arg("-DHAVE_LIBZ=0")
+        .configure_arg("-DENABLE_LTO=OFF")
         .configure_arg("-DNO_CONSOLE_IO=ON")
         .build();
 
@@ -145,7 +146,7 @@ pub fn compile_tesseract(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
         .configure_arg("-DBUILD_TRAINING_TOOLS=OFF")
         .configure_arg("-DBUILD_TESTS=OFF")
         .configure_arg("-DBUILD_SHARED_LIBS=OFF")
-        .configure_arg("-DENABLE_LTO=ON")
+        .configure_arg("-DENABLE_LTO=OFF")
         .configure_arg("-DDISABLE_ARCHIVE=ON")
         .configure_arg("-DDISABLE_CURL=ON")
         .configure_arg("-DUSE_SYSTEM_ICU=ON")
