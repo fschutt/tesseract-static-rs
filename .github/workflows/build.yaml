@@ -55,4 +55,4 @@ jobs:
           sudo apt-get install -y --allow-downgrades libstdc++6
           sudo apt-get install --reinstall g++ cmake libstdc++6
       - name: build
-        run: cargo build --release --verbose --example main
+        run: cd tesseract-static-example && cargo run --release --verbose

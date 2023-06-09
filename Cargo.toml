@@ -2,4 +2,5 @@
 members = [
     "tesseract-static",
     "tesseract-static-build",
+    "tesseract-static-example",
 ]
