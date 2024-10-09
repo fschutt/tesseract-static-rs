@@ -1,7 +1,9 @@
 use tesseract_static::tesseract::Tesseract;
 
+mod parse;
+
 unsafe fn run_tesseract_test() -> String {
-    Tesseract::new(
+    let text = Tesseract::new(
         Some(&std::env::temp_dir().display().to_string()),
         Some("eng"),
     )
@@ -9,7 +11,11 @@ unsafe fn run_tesseract_test() -> String {
     .set_image_from_mem(include_bytes!("../../testocr.pnm"))
     .unwrap()
     .get_hocr_text(1)
-    .unwrap()
+    .unwrap();
+
+    parse::ParsedHocr::new(&text).ok()
+    .and_then(|parsed| serde_json::to_string_pretty(&parsed).ok())
+    .unwrap_or_default()
 }
 
 fn main() {

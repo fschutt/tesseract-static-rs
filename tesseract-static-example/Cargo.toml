@@ -15,6 +15,10 @@ publish = false
 [dependencies]
 tesseract-static = { path = "../tesseract-static" }
 rayon = "*"
+kuchiki = "*"
+serde_json = "*"
+serde = "*"
+serde_derive = "*"
 
 [build-dependencies]
 tesseract-static-build = { path = "../tesseract-static-build" }
