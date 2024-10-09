@@ -110,7 +110,10 @@ pub fn download_and_unpack(url: &str, target: &PathBuf) -> PathBuf {
     use std::fs::File;
     use tar::Archive;
 
-    let body = reqwest::blocking::get(url).unwrap().bytes().unwrap();
+    let client = reqwest::blocking::Client::builder()
+    .timeout(std::time::Duration::from_secs(60))
+    .build().unwrap();
+    let body = client.get(url).send().unwrap().bytes().unwrap();
     std::fs::write(target.join("out.tar.gz"), body.as_ref()).unwrap();
     let tar_gz = File::open(&target.join("out.tar.gz")).unwrap();
     let tar = GzDecoder::new(tar_gz);

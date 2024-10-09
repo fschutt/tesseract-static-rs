@@ -902,6 +902,7 @@ dependencies = [
 name = "tesseract-static-example"
 version = "0.1.0"
 dependencies = [
+ "rayon",
  "tesseract-static",
  "tesseract-static-build",
 ]
