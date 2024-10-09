@@ -6,7 +6,7 @@ unsafe fn run_tesseract_test() -> String {
         Some("eng"),
     )
     .unwrap()
-    .set_image_from_mem(include_bytes!("../../../testocr.pnm"))
+    .set_image_from_mem(include_bytes!("../../testocr.pnm"))
     .unwrap()
     .get_hocr_text(1)
     .unwrap()
@@ -16,7 +16,7 @@ fn main() {
     use rayon::prelude::*;
 
     let dir = std::env::temp_dir().join("eng.traineddata");
-    std::fs::write(&dir, include_bytes!("../../../eng.traineddata")).unwrap();
+    std::fs::write(&dir, include_bytes!("../../eng.traineddata")).unwrap();
 
     println!("{}", unsafe { run_tesseract_test() });
 

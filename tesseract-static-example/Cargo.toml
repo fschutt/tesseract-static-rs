@@ -14,6 +14,7 @@ publish = false
 
 [dependencies]
 tesseract-static = { path = "../tesseract-static" }
+rayon = "*"
 
 [build-dependencies]
 tesseract-static-build = { path = "../tesseract-static-build" }
