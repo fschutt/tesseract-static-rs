@@ -89,6 +89,7 @@ pub fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
     std::fs::write(base_dir.join("src").join("endianness.h"), target_endian).unwrap();
 
     let dst = cmake::Config::new(&base_dir)
+        .profile("Release")
         .always_configure(true)
         .configure_arg("-DBUILD_PROG=OFF")
         .configure_arg("-DSW_BUILD=OFF")
@@ -102,7 +103,6 @@ pub fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
         .configure_arg("-DHAVE_LIBZ=0")
         .configure_arg("-DENABLE_LTO=OFF")
         .configure_arg("-DNO_CONSOLE_IO=ON")
-        .configure_arg("-DCMAKE_BUILD_TYPE=Release")
         .build();
 
     let library_path = dst
@@ -228,6 +228,7 @@ pub fn compile_tesseract(source_dir: &Path, disable_avx: bool) -> (PathBuf, Vec<
     }
 
     let dst = cmake::Config::new(&base_dir)
+        .profile("Release")
         .always_configure(true)
         .configure_arg("-DHAVE_LIBARCHIVE=OFF")
         .configure_arg("-DHAVELIBCURL=OFF")
@@ -248,7 +249,6 @@ pub fn compile_tesseract(source_dir: &Path, disable_avx: bool) -> (PathBuf, Vec<
         .configure_arg("-DINSTALL_CONFIGS=ON") // OFF?
         .configure_arg("-DFAST_FLOAT=ON")
         .configure_arg("-DENABLE_OPENCL=OFF")
-        .configure_arg("-DCMAKE_BUILD_TYPE=Release")
         .build();
 
     eprintln!("library path tesseract {}", dst.display());
