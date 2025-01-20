@@ -270,31 +270,40 @@ pub fn compile_tesseract(source_dir: &Path, disable_avx: bool) -> (PathBuf, Vec<
 }
 
 pub fn print_cargo_link_includes(leptonica_lib: &Path, tesseract_lib: &Path) {
+
     #[cfg(target_os = "macos")]
     {
-        println!(
-            "cargo:rustc-link-search={}",
-            leptonica_lib.parent().unwrap().display()
-        );
-        println!(
-            "cargo:rustc-link-search={}",
-            tesseract_lib.parent().unwrap().display()
-        );
+        let leptonica_lib = leptonica_lib.parent().unwrap().display().to_string();
+        let tesseract_lib = tesseract_lib.parent().unwrap().display().to_string();
+    
+        let leptonica_lib = leptonica_lib.replace(r#"\\?\"#, "");
+        let tesseract_lib = tesseract_lib.replace(r#"\\?\"#, "");
+    
+        println!("cargo:rustc-link-search={leptonica_lib}");
+        if leptonica_lib != tesseract_lib {
+            println!("cargo:rustc-link-search={tesseract_lib}");
+        }
         println!("cargo:rustc-link-lib=static=tesseract");
         println!("cargo:rustc-link-lib=static=leptonica");
     }
 
     #[cfg(target_os = "linux")]
     {
-        println!("cargo:rustc-link-arg={}", leptonica_lib.display());
-        println!("cargo:rustc-link-arg={}", tesseract_lib.display());
+        let leptonica_lib = leptonica_lib.display().to_string().replace(r#"\\?\"#, "");
+        let tesseract_lib = tesseract_lib.display().to_string().replace(r#"\\?\"#, "");
+    
+        println!("cargo:rustc-link-arg={leptonica_lib}");
+        println!("cargo:rustc-link-arg={tesseract_lib}");
         println!("cargo:rustc-link-search=/usr/lib64");
     }
     
     #[cfg(target_os = "windows")]
     {
-        println!("cargo:rustc-link-arg={}", leptonica_lib.display());
-        println!("cargo:rustc-link-arg={}", tesseract_lib.display());
+        let leptonica_lib = leptonica_lib.display().to_string().replace(r#"\\?\"#, "");
+        let tesseract_lib = tesseract_lib.display().to_string().replace(r#"\\?\"#, "");
+    
+        println!("cargo:rustc-link-arg={leptonica_lib}");
+        println!("cargo:rustc-link-arg={tesseract_lib}");
         println!("cargo:rustc-env=CXXFLAGS=/D_VARIANT_BOOL=BOOL");
         println!("cargo:rustc-env=CFLAGS=/D_VARIANT_BOOL=BOOL");
     }
