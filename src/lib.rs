@@ -8,3 +8,5 @@ pub mod leptonica_sys;
 pub mod tesseract;
 #[path = "tesseract_sys/lib.rs"]
 pub mod tesseract_sys;
+#[cfg(feature = "parse")]
+pub mod parse;

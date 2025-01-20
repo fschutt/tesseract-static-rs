@@ -1149,9 +1149,6 @@ extern "C" {
     pub fn TessMonitorGetCancelThis(monitor: *mut ETEXT_DESC) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
-    pub fn TessMonitorSetProgressFunc(monitor: *mut ETEXT_DESC, progressFunc: TessProgressFunc);
-}
-extern "C" {
     pub fn TessMonitorGetProgress(monitor: *mut ETEXT_DESC) -> ::std::os::raw::c_int;
 }
 extern "C" {

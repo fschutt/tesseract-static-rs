@@ -1,14 +1,22 @@
+//! Build script to build tesseract
+
 use fs_extra::dir::CopyOptions;
 use std::env;
 use std::path::{Path, PathBuf};
 
+/// Function to download leptonica from GitHub, will not re-compile if already cached
 pub fn download_leptonica() -> PathBuf {
-    let source = "https://github.com/fschutt/tesseract-static-rs/files/11274620/leptonica-1b1d7ade6d753e8af2d023cff15d7862cd7b8413.tar.gz";
+    let source = "https://github.com/DanBloomberg/leptonica/releases/download/1.85.0/leptonica-1.85.0.tar.gz";
     let target = Path::new(&env::var("OUT_DIR").unwrap()).join("leptonica");
-    std::fs::create_dir_all(&target).unwrap();
-    download_and_unpack(source, &target)
+    if !target.exists() {
+        std::fs::create_dir_all(&target).unwrap();
+        download_and_unpack(source, &target)
+    } else {
+        target.clone()
+    }
 }
 
+/// Function to compile leptonica, will not re-compile if already cached
 pub fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
     let out_dir = std::env::var("OUT_DIR").expect("no out dir");
     let base_dir = Path::new(&out_dir).join("leptonica");
@@ -18,11 +26,29 @@ pub fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
     let _ = fs_extra::dir::copy(&source_dir, &base_dir, &CopyOptions::default());
 
     let base_dir = base_dir
-        .join("leptonica")
-        .join("leptonica-1b1d7ade6d753e8af2d023cff15d7862cd7b8413");
+        .join("leptonica-1.85.0");
+
+    let expected_library_path = Path::new(&out_dir)
+    .join("lib")
+    .join({
+        #[cfg(not(target_os = "windows"))]
+        {
+            "libleptonica.a"
+        }
+        #[cfg(target_os = "windows")]
+        {
+            "leptonica-1.85.0.lib"
+        }
+    });
+
+    if expected_library_path.exists() { // library already built
+        let ret2 = vec![Path::new(&out_dir).join("include").join("leptonica")];
+        return (expected_library_path, ret2);
+    }
 
     eprintln!("base dir {}", base_dir.display());
 
+    // Early exit if dir already exists
     // Disable all image I/O except bmp and pnm files
     let environ_h_path = base_dir.join("src").join("environ.h");
     let environ_h = std::fs::read_to_string(&environ_h_path)
@@ -41,7 +67,7 @@ pub fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
     let configure_cmake_path = base_dir.join("cmake").join("Configure.cmake");
     std::fs::write(
         configure_cmake_path,
-        include_bytes!("../leptonica-CmakeLists.txt"),
+        include_bytes!("./leptonica-CmakeLists.txt"),
     )
     .unwrap();
 
@@ -78,8 +104,6 @@ pub fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
         .configure_arg("-DNO_CONSOLE_IO=ON")
         .build();
 
-    eprintln!("library path {}", dst.display());
-
     let library_path = dst
         .join("lib")
         .join({
@@ -89,7 +113,7 @@ pub fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
             }
             #[cfg(target_os = "windows")]
             {
-                "leptonica-1.84.0.lib"
+                "leptonica-1.85.0.lib"
             }
         })
         .canonicalize()
@@ -98,13 +122,19 @@ pub fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
     (library_path, vec![dst.join("include").join("leptonica")])
 }
 
+/// Function to download tesseract from GitHub to OUT_DIR, will not re-download if already cached
 pub fn download_tesseract() -> PathBuf {
-    let source = "https://github.com/tesseract-ocr/tesseract/archive/refs/tags/5.3.0.tar.gz";
+    let source = "https://github.com/tesseract-ocr/tesseract/archive/refs/tags/5.5.0.tar.gz";
     let target = Path::new(&env::var("OUT_DIR").unwrap()).join("tesseract");
-    std::fs::create_dir_all(&target).unwrap();
-    download_and_unpack(source, &target)
+    if !target.exists() {
+        std::fs::create_dir_all(&target).unwrap();
+        download_and_unpack(source, &target)
+    } else {
+        target.clone()
+    }
 }
 
+/// Will download and unpack a URL to a path, WARNING: no caching!
 pub fn download_and_unpack(url: &str, target: &PathBuf) -> PathBuf {
     use flate2::read::GzDecoder;
     use std::fs::File;
@@ -122,7 +152,10 @@ pub fn download_and_unpack(url: &str, target: &PathBuf) -> PathBuf {
     target.clone()
 }
 
-pub fn compile_tesseract(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
+/// Function to compile tesseract into OUT_DIR, will not re-compile if cached
+/// 
+/// Set `disable_avx` to true if encountering build problems in a VM.
+pub fn compile_tesseract(source_dir: &Path, disable_avx: bool) -> (PathBuf, Vec<PathBuf>) {
     let out_dir = std::env::var("OUT_DIR").expect("no out dir");
     let base_dir = Path::new(&out_dir).join("tesseract");
 
@@ -130,12 +163,68 @@ pub fn compile_tesseract(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
 
     let _ = fs_extra::dir::copy(&source_dir, &base_dir, &CopyOptions::default());
 
-    let base_dir = base_dir.join("tesseract").join("tesseract-5.3.0");
+    let base_dir = base_dir.join("tesseract").join("tesseract-5.5.0");
+
+    let expected_library_path = Path::new(&out_dir)
+        .join("lib")
+        .join({
+            #[cfg(not(target_os = "windows"))]
+            {
+                "libtesseract.a"
+            }
+            #[cfg(target_os = "windows")]
+            {
+                "tesseract55.lib"
+            }
+        });
+
+    if expected_library_path.exists() {
+        let ret2 = vec![base_dir.join("include").join("tesseract")];
+        return (expected_library_path, ret2);
+    }
 
     let cmakelists = std::fs::read_to_string(base_dir.join("CMakeLists.txt"))
         .unwrap()
         .replace("set(HAVE_TIFFIO_H ON)", "");
+
+    // If run in a VM, disable AVX extensions
+    let cmakelists = if disable_avx {
+        let off = &[
+            "set(HAVE_AVX FALSE)",
+            "set(HAVE_AVX2 FALSE)",
+            "set(HAVE_AVX512F FALSE)",
+            "set(HAVE_FMA FALSE)",
+            "set(HAVE_NEON FALSE)",
+            "set(HAVE_SSE4_1 FALSE)",
+        ].join("\r\n");
+    
+        let line = "endif(CMAKE_SYSTEM_PROCESSOR MATCHES \"x86|x86_64|AMD64|amd64|i386|i686\")";
+    
+        cmakelists.replace(line, &(line.to_string() + "\r\n" + off))
+    } else {
+        cmakelists
+    };
+
     std::fs::write(base_dir.join("CMakeLists.txt"), cmakelists).unwrap();
+
+    if disable_avx {
+
+        let line2 = "#if defined(HAVE_AVX) || defined(HAVE_AVX2) || defined(HAVE_FMA) || defined(HAVE_SSE4_1)";
+        let off2 = &[
+            "#undef HAVE_AVX",
+            "#undef HAVE_AVX2",
+            "#undef HAVE_FMA",
+            "#undef HAVE_SSE4_1",
+            "#undef HAVE_AVX512F",
+            "#undef HAVE_NEON",
+            "#undef HAVE_RVV",
+        ].join("\r\n");
+
+        let simddetect = std::fs::read_to_string(base_dir.join("src").join("arch").join("simddetect.cpp"))
+            .unwrap()
+            .replace(line2, &(off2.to_string() + "\r\n" + line2 + "\r\n"));
+        std::fs::write(base_dir.join("src").join("arch").join("simddetect.cpp"), simddetect).unwrap();
+    }
 
     let dst = cmake::Config::new(&base_dir)
         .always_configure(true)
@@ -152,10 +241,12 @@ pub fn compile_tesseract(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
         .configure_arg("-DENABLE_LTO=OFF")
         .configure_arg("-DDISABLE_ARCHIVE=ON")
         .configure_arg("-DDISABLE_CURL=ON")
-        .configure_arg("-DUSE_SYSTEM_ICU=ON")
-        .configure_arg("-DINSTALL_CONFIGS=ON")
         .configure_arg("-DBUILD_PROG=OFF")
         .configure_arg("-DSW_BUILD=OFF")
+        .configure_arg("-DUSE_SYSTEM_ICU=OFF")
+        .configure_arg("-DINSTALL_CONFIGS=ON") // OFF?
+        .configure_arg("-DFAST_FLOAT=ON")
+        .configure_arg("-DENABLE_OPENCL=OFF")
         .build();
 
     eprintln!("library path tesseract {}", dst.display());
@@ -169,7 +260,7 @@ pub fn compile_tesseract(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
             }
             #[cfg(target_os = "windows")]
             {
-                "tesseract53.lib"
+                "tesseract55.lib"
             }
         })
         .canonicalize()
@@ -197,11 +288,28 @@ pub fn print_cargo_link_includes(leptonica_lib: &Path, tesseract_lib: &Path) {
     {
         println!("cargo:rustc-link-arg={}", leptonica_lib.display());
         println!("cargo:rustc-link-arg={}", tesseract_lib.display());
+        println!("cargo:rustc-link-search=/usr/lib64");
     }
-
+    
     #[cfg(target_os = "windows")]
     {
         println!("cargo:rustc-link-arg={}", leptonica_lib.display());
         println!("cargo:rustc-link-arg={}", tesseract_lib.display());
     }
+}
+
+/// NOTE: This function should be called from a build.rs script and 
+/// has to run on EVERY build (it caches results automatically internally)
+fn main() {
+    let (leptonica_lib, _leptonica_includes) =
+        compile_leptonica(&download_leptonica());
+    let (tesseract_lib, _tesseract_includes) =
+        compile_tesseract(&download_tesseract(), cfg!(feature = "disable_avx"));
+    
+    // This function should re-run on every build
+    std::env::set_var("TESSERACT_REBUILD", format!("{:?}", std::time::Instant::now()));
+    println!("cargo:rerun-if-env-changed=TESSERACT_REBUILD");
+    println!("cargo:rerun-if-changed=NULL"); // https://stackoverflow.com/a/76743504
+
+    print_cargo_link_includes(&leptonica_lib, &tesseract_lib);
 }

@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - 'master'
-    tags:
-      # this is _not_ a regex, see: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#filter-pattern-cheat-sheet
-      - '[0-9]+.[0-9]+.[0-9]+*'
   pull_request:
 
 jobs:
@@ -47,7 +44,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: 1.67
+          toolchain: 1.84
       - name: Setup Linux
         if: matrix.build == 'linux-x64'
         run: |

@@ -1,6 +1,33 @@
-[workspace]
-members = [
-    "tesseract-static",
-    "tesseract-static-build",
-    "tesseract-static-example",
-]
+[package]
+name = "tesseract-static"
+version = "0.2.0"
+authors = ["Felix Schütt <felix.schuett@maps4print.com>"]
+description = "STATICALLY LINKED tesseract + leptonica bindings for easy inclusion of tesseract-ocr in binary applications"
+license = "Apache-2.0"
+keywords = ["tesseract", "leptonica", "ocr", "text-recognition"]
+categories = ["computer-vision"]
+edition = "2021"
+exclude = ["testocr.pnm", "deu.traineddata", "eng.traineddata"]
+build = "build.rs"
+
+[dependencies]
+libc = "0.2.140"
+rayon = "1.7.0"
+thiserror = "1.0.39"
+link-cplusplus = "1.0"
+kuchiki = { version = "0.8.1", optional = true }
+serde_json = { version = "1", optional = true }
+serde = { version = "1", optional = true }
+serde_derive = { version = "1", optional = true }
+
+[build-dependencies]
+cmake = "0.1.49"
+fs_extra = "1.3.0"
+flate2 = "1.0.25"
+tar = "0.4.38"
+reqwest = { version = "0.11.14", features = ["blocking"] }
+
+[features]
+default = ["parse"]
+parse = ["kuchiki", "serde_json", "serde_derive", "serde"]
+disable_avx = []

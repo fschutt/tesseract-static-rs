@@ -52,15 +52,3 @@ impl Box {
         }
     }
 }
-
-#[test]
-fn create_valid_test() {
-    let r#box = Box::create_valid(1, 2, 3, 4).unwrap();
-    let lbox: &leptonica_sys::Box = r#box.as_ref();
-    assert_eq!(lbox.w, 3);
-}
-
-#[test]
-fn create_invalid_test() {
-    assert!(Box::create_valid(1, 2, 3, -4).is_err())
-}

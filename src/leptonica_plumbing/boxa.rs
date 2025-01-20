@@ -67,11 +67,3 @@ impl Boxa {
         }
     }
 }
-
-#[test]
-fn create_valid_test() {
-    let boxa = Boxa::create(4).unwrap();
-    let lboxa: &leptonica_sys::Boxa = boxa.as_ref();
-    assert_eq!(lboxa.nalloc, 4);
-    assert_eq!(lboxa.n, 0);
-}

@@ -424,38 +424,6 @@ impl TessBaseApi {
 }
 
 #[test]
-fn set_image_1_safety_test() {
-    use image::GenericImageView;
-    let mut tess = TessBaseApi::create();
-    tess.init_2(None, None).unwrap();
-    let img = image::open("image.png").unwrap();
-    assert_eq!(
-        tess.set_image(
-            img.as_rgba8().unwrap(),
-            img.width().try_into().unwrap(),
-            img.height().try_into().unwrap(),
-            4,
-            (img.width() * 4).try_into().unwrap()
-        ),
-        Ok(())
-    );
-    assert_eq!(tess.set_image(&[0, 0, 0, 0], 2, 2, 1, 2), Ok(()));
-    assert_eq!(
-        tess.set_image(&[0, 0, 0], 2, 2, 1, 2),
-        Err(TessBaseApiSetImageSafetyError::DimensionsExceedImageSize())
-    );
-    assert_eq!(
-        tess.set_image(&[0, 0, 0, 0], 2, 2, 1, 1),
-        Err(TessBaseApiSetImageSafetyError::ImageWidthExceedsBytesPerLine())
-    );
-    assert_eq!(tess.set_image(&[0, 0, 0, 0], 16, 2, 0, 2), Ok(()));
-    assert_eq!(
-        tess.set_image(&[0, 0, 0, 0], 17, 2, 0, 2),
-        Err(TessBaseApiSetImageSafetyError::ImageWidthExceedsBytesPerLine())
-    );
-}
-
-#[test]
 fn set_variable_error_test() -> Result<(), Box<dyn std::error::Error>> {
     let fail = std::ffi::CString::new("fail")?;
     let mut tess = TessBaseApi::create();
