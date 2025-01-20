@@ -269,58 +269,11 @@ pub fn compile_tesseract(source_dir: &Path, disable_avx: bool) -> (PathBuf, Vec<
     (library_path, vec![dst.join("include").join("tesseract")])
 }
 
-pub fn print_cargo_link_includes(leptonica_lib: &Path, tesseract_lib: &Path) {
-
-    #[cfg(target_os = "macos")]
-    {
-        let leptonica_lib = leptonica_lib.parent().unwrap().display().to_string();
-        let tesseract_lib = tesseract_lib.parent().unwrap().display().to_string();
-    
-        let leptonica_lib = leptonica_lib.replace(r#"\\?\"#, "");
-        let tesseract_lib = tesseract_lib.replace(r#"\\?\"#, "");
-    
-        println!("cargo:rustc-link-search={leptonica_lib}");
-        if leptonica_lib != tesseract_lib {
-            println!("cargo:rustc-link-search={tesseract_lib}");
-        }
-        println!("cargo:rustc-link-lib=static=tesseract");
-        println!("cargo:rustc-link-lib=static=leptonica");
-    }
-
-    #[cfg(target_os = "linux")]
-    {
-        let leptonica_lib = leptonica_lib.display().to_string().replace(r#"\\?\"#, "");
-        let tesseract_lib = tesseract_lib.display().to_string().replace(r#"\\?\"#, "");
-    
-        println!("cargo:rustc-link-arg={leptonica_lib}");
-        println!("cargo:rustc-link-arg={tesseract_lib}");
-        println!("cargo:rustc-link-search=/usr/lib64");
-    }
-    
-    #[cfg(target_os = "windows")]
-    {
-        let leptonica_lib = leptonica_lib.display().to_string().replace(r#"\\?\"#, "");
-        let tesseract_lib = tesseract_lib.display().to_string().replace(r#"\\?\"#, "");
-    
-        println!("cargo:rustc-link-arg={leptonica_lib}");
-        println!("cargo:rustc-link-arg={tesseract_lib}");
-        println!("cargo:rustc-env=CXXFLAGS=/D_VARIANT_BOOL=BOOL");
-        println!("cargo:rustc-env=CFLAGS=/D_VARIANT_BOOL=BOOL");
-    }
-}
-
 /// NOTE: This function should be called from a build.rs script and 
 /// has to run on EVERY build (it caches results automatically internally)
 fn main() {
-    let (leptonica_lib, _leptonica_includes) =
+    let (_, _leptonica_includes) =
         compile_leptonica(&download_leptonica());
-    let (tesseract_lib, _tesseract_includes) =
+    let (_, _tesseract_includes) =
         compile_tesseract(&download_tesseract(), cfg!(feature = "disable_avx"));
-    
-    // This function should re-run on every build
-    std::env::set_var("TESSERACT_REBUILD", format!("{:?}", std::time::Instant::now()));
-    println!("cargo:rerun-if-env-changed=TESSERACT_REBUILD");
-    println!("cargo:rerun-if-changed=NULL"); // https://stackoverflow.com/a/76743504
-
-    print_cargo_link_includes(&leptonica_lib, &tesseract_lib);
 }
