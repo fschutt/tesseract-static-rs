@@ -297,6 +297,8 @@ pub fn print_cargo_link_includes(leptonica_lib: &Path, tesseract_lib: &Path) {
         println!("cargo:rustc-link-arg={}", leptonica_lib.display());
         println!("cargo:rustc-link-arg={}", tesseract_lib.display());
         println!("cargo:rustc-link-lib=stdc++");
+        println!("cargo:rustc-env=CXXFLAGS=/D_VARIANT_BOOL=BOOL");
+        println!("cargo:rustc-env=CFLAGS=/D_VARIANT_BOOL=BOOL");
     }
 }
 
