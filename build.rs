@@ -102,6 +102,7 @@ pub fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
         .configure_arg("-DHAVE_LIBZ=0")
         .configure_arg("-DENABLE_LTO=OFF")
         .configure_arg("-DNO_CONSOLE_IO=ON")
+        .configure_arg("-DCMAKE_BUILD_TYPE=Release")
         .build();
 
     let library_path = dst
@@ -247,6 +248,7 @@ pub fn compile_tesseract(source_dir: &Path, disable_avx: bool) -> (PathBuf, Vec<
         .configure_arg("-DINSTALL_CONFIGS=ON") // OFF?
         .configure_arg("-DFAST_FLOAT=ON")
         .configure_arg("-DENABLE_OPENCL=OFF")
+        .configure_arg("-DCMAKE_BUILD_TYPE=Release")
         .build();
 
     eprintln!("library path tesseract {}", dst.display());
