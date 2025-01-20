@@ -52,4 +52,4 @@ jobs:
           sudo apt-get install -y --allow-downgrades libstdc++6
           sudo apt-get install --reinstall g++ cmake libstdc++6
       - name: build
-        run: cargo run --release --example simple
+        run: cd example && cargo run --release

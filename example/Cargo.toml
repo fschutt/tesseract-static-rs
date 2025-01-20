@@ -1,0 +1,14 @@
+[package]
+name = "tesseract-static-example"
+version = "0.2.0"
+edition = "2021"
+authors = ["Felix Schütt <felix.schuett@maps4print.com>"]
+description = "example for tesseract-static-rs"
+publish = false
+build = "build.rs"
+
+[dependencies]
+tesseract-static = { path = ".." }
+
+[build-dependencies]
+tesseract-static = { path = ".." }

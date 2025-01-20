@@ -1,6 +1,6 @@
 use tesseract_static::tesseract::Tesseract;
 
-const TRAINING_DATA: &[u8] = include_bytes!("../eng.traineddata");
+const TRAINING_DATA: &[u8] = include_bytes!("../../eng.traineddata");
 
 fn main() {
 
@@ -10,7 +10,7 @@ fn main() {
 
     let hocr_xml = Tesseract::new(Some(&parent.display().to_string()), Some("eng"))
     .unwrap()
-    .set_image_from_mem(include_bytes!("../testocr.pnm"))
+    .set_image_from_mem(include_bytes!("../../testocr.pnm"))
     .unwrap()
     .get_hocr_text(1)
     .unwrap();
