@@ -45,11 +45,16 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: 1.84
-      - name: Setup Linux
-        if: matrix.build == 'linux-x64'
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y --allow-downgrades libstdc++6
-          sudo apt-get install --reinstall g++ cmake libstdc++6
       - name: build
-        run: cd example && cargo run --release
+        run: cargo run --release --example simple
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-without-markdown
+          path: |
+            target/release/examples/tesseract/libleptonica.dylib
+            target/release/examples/tesseract/libtesseract.dylib
+            target/release/examples/tesseract/libleptonica.so
+            target/release/examples/tesseract/libtesseract.so
+            target/release/examples/tesseract/libleptonica.dll
+            target/release/examples/tesseract/libtesseract.dll

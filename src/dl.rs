@@ -24,14 +24,18 @@ lazy_static! {
     /// The one-and-only static instance of `Api`. This is initialized on first access.
     static ref API: Api = {
 
-        #[cfg(not(windows))]
+        #[cfg(target_os = "macos")]
+        const LEPTONICA_FILENAME: &str = "libleptonica.dylib";
+        #[cfg(target_os = "linux")]
         const LEPTONICA_FILENAME: &str = "libleptonica.so";
-        #[cfg(not(windows))]
-        const TESSERACT_FILENAME: &str = "libtesseract.so";
-
-        #[cfg(windows)]
+        #[cfg(target_os = "windows")]
         const LEPTONICA_FILENAME: &str = "libleptonica.dll";
-        #[cfg(windows)]
+
+        #[cfg(target_os = "macos")]
+        const TESSERACT_FILENAME: &str = "libtesseract.dylib";
+        #[cfg(target_os = "linux")]
+        const TESSERACT_FILENAME: &str = "libtesseract.so";
+        #[cfg(target_os = "windows")]
         const TESSERACT_FILENAME: &str = "libtesseract.dll";
 
         // 1. Choose/write the library files to a temp directory:
