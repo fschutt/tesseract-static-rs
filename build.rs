@@ -101,7 +101,10 @@ pub fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
         .build();
 
     let library_path = dst
-        .join("lib")
+        .join({
+            #[cfg(target_os = "windows")] { "bin" }
+            #[cfg(not(target_os = "windows"))] { "lib" }
+        })
         .join({
             #[cfg(target_os = "macos")] { "libleptonica.dylib" }
             #[cfg(target_os = "linux")] { "libleptonica.so" }
