@@ -106,11 +106,21 @@ pub fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
             #[cfg(target_os = "macos")] { "libleptonica.dylib" }
             #[cfg(target_os = "linux")] { "libleptonica.so" }
             #[cfg(target_os = "windows")] { "leptonica-1.85.0.dll" }
-        })
+        });
+
+    if !library_path.exists() {
+        let files = list_files(&dst);
+        for f in files {
+            println!("{}", f.display());
+        }
+        panic!("leptonica DLL not found in {}", library_path.display());
+    } else {
+        let library_path = library_path
         .canonicalize()
         .unwrap();
 
-    (library_path, vec![dst.join("include").join("leptonica")])
+        (library_path, vec![dst.join("include").join("leptonica")])
+    }
 }
 
 /// Function to download tesseract from GitHub to OUT_DIR, will not re-download if already cached
@@ -123,6 +133,29 @@ pub fn download_tesseract() -> PathBuf {
     } else {
         target.clone()
     }
+}
+
+
+fn _list_files(vec: &mut Vec<PathBuf>, path: &Path) {
+    use std::fs::metadata;
+    use std::fs;
+    if metadata(&path).unwrap().is_dir() {
+        let paths = fs::read_dir(&path).unwrap();
+        for path_result in paths {
+            let full_path = path_result.unwrap().path();
+            if metadata(&full_path).unwrap().is_dir() {
+                _list_files(vec, &full_path);
+            } else {
+                vec.push(full_path);
+            }
+        }
+    }
+}
+
+fn list_files(path: &Path) -> Vec<PathBuf> {
+    let mut vec = Vec::new();
+    _list_files(&mut vec,&path);
+    vec
 }
 
 /// Will download and unpack a URL to a path, WARNING: no caching!

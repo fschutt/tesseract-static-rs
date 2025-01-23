@@ -31,7 +31,7 @@ jobs:
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: dist-without-markdown
+          name: artifact-${{ matrix.os }}
           path: |
             target/release/examples/tesseract/libleptonica.dylib
             target/release/examples/tesseract/libtesseract.dylib
