@@ -1,4 +1,4 @@
-use crate::tesseract_sys::TessDeleteText;
+use super::super::dl::get_api;
 use std::convert::AsRef;
 use std::ffi::CStr;
 use std::os::raw::c_char;
@@ -10,7 +10,7 @@ unsafe impl Send for Text {}
 
 impl Drop for Text {
     fn drop(&mut self) {
-        unsafe { TessDeleteText(self.0) }
+        unsafe { (get_api().TessDeleteText)(self.0) }
     }
 }
 

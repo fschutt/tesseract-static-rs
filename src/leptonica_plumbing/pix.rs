@@ -1,11 +1,11 @@
-use crate::leptonica_sys::{pixDestroy, pixRead, pixReadMem};
+use super::super::dl::{get_api, Pix as LeptPix};
 use std::convert::AsRef;
 use std::{ffi::CStr, num::TryFromIntError};
 use thiserror::Error;
 
 /// Wrapper around Leptonica's [`Pix`](https://tpgit.github.io/Leptonica/struct_pix.html) structure
 #[derive(Debug)]
-pub struct Pix(*mut crate::leptonica_sys::Pix);
+pub struct Pix(*mut LeptPix);
 
 /// Error returned by Pix::read_mem
 #[derive(Debug, Error, PartialEq)]
@@ -24,19 +24,19 @@ pub struct PixReadError();
 impl Drop for Pix {
     fn drop(&mut self) {
         unsafe {
-            pixDestroy(&mut self.0);
+            (get_api().pixDestroy)(&mut self.0);
         }
     }
 }
 
-impl AsRef<*mut crate::leptonica_sys::Pix> for Pix {
-    fn as_ref(&self) -> &*mut crate::leptonica_sys::Pix {
+impl AsRef<*mut LeptPix> for Pix {
+    fn as_ref(&self) -> &*mut LeptPix {
         &self.0
     }
 }
 
-impl AsRef<crate::leptonica_sys::Pix> for Pix {
-    fn as_ref(&self) -> &crate::leptonica_sys::Pix {
+impl AsRef<LeptPix> for Pix {
+    fn as_ref(&self) -> &LeptPix {
         unsafe { &*self.0 }
     }
 }
@@ -51,7 +51,7 @@ impl Pix {
     /// The structure must not be mutated or freed outside of the Rust code.
     ///
     /// It must be safe for Rust to free the pointer. If this is not the case consider using [super::BorrowedPix::new].
-    pub unsafe fn new_from_pointer(ptr: *mut crate::leptonica_sys::Pix) -> Self {
+    pub unsafe fn new_from_pointer(ptr: *mut LeptPix) -> Self {
         Self(ptr)
     }
 
@@ -59,7 +59,7 @@ impl Pix {
     ///
     /// Read an image from a filename
     pub fn read(filename: &CStr) -> Result<Self, PixReadError> {
-        let ptr = unsafe { pixRead(filename.as_ptr()) };
+        let ptr = unsafe { (get_api().pixRead)(filename.as_ptr()) };
         if ptr.is_null() {
             Err(PixReadError())
         } else {
@@ -71,7 +71,7 @@ impl Pix {
     ///
     /// Read an image from memory
     pub fn read_mem(img: &[u8]) -> Result<Self, PixReadMemError> {
-        let ptr = unsafe { pixReadMem(img.as_ptr(), img.len()) };
+        let ptr = unsafe { (get_api().pixReadMem)(img.as_ptr(), img.len()) };
         if ptr.is_null() {
             Err(PixReadMemError::NullPtr)
         } else {

@@ -1,11 +1,18 @@
-#[path = "../tesseract_plumbing/lib.rs"]
-pub mod tesseract_plumbing;
-#[path = "../tesseract_sys/lib.rs"]
-pub mod tesseract_sys;
-
-use self::tesseract_sys::{
-    TessOcrEngineMode, TessOcrEngineMode_OEM_DEFAULT, TessOcrEngineMode_OEM_LSTM_ONLY,
-    TessOcrEngineMode_OEM_TESSERACT_LSTM_COMBINED, TessOcrEngineMode_OEM_TESSERACT_ONLY,
+use crate::dl::{TessOcrEngineMode,
+    TessOcrEngineMode_OEM_DEFAULT, 
+    TessOcrEngineMode_OEM_LSTM_ONLY,
+    TessOcrEngineMode_OEM_TESSERACT_LSTM_COMBINED, 
+    TessOcrEngineMode_OEM_TESSERACT_ONLY
+};
+use crate::tesseract_plumbing::{
+    TessBaseApiInitError, 
+    TessBaseApiSetVariableError,
+    TessBaseApiRecogniseError,
+    TessBaseApiGetUtf8TextError,
+    TessBaseApiGetHocrTextError,
+    TessBaseApiGetTsvTextError,
+    TessBaseApiSetImageSafetyError,
+    TessBaseApi,
 };
 use std::ffi::CString;
 use std::ffi::NulError;
@@ -18,7 +25,7 @@ pub enum InitializeError {
     #[error("Conversion to CString failed")]
     CStringError(#[from] NulError),
     #[error("TessBaseApi failed to initialize")]
-    TessBaseAPIInitError(#[from] crate::tesseract::tesseract_plumbing::TessBaseApiInitError),
+    TessBaseAPIInitError(#[from] TessBaseApiInitError),
 }
 
 #[derive(Debug, Error)]
@@ -34,9 +41,7 @@ pub enum SetVariableError {
     #[error("Conversion to CString failed")]
     CStringError(#[from] NulError),
     #[error("TessBaseApi failed to set variable")]
-    TessBaseAPISetVariableError(
-        #[from] crate::tesseract::tesseract_plumbing::TessBaseApiSetVariableError,
-    ),
+    TessBaseAPISetVariableError(#[from] TessBaseApiSetVariableError),
 }
 
 #[derive(Debug, Error)]
@@ -46,15 +51,15 @@ pub enum TesseractError {
     #[error("Failed to set image")]
     SetImageError(#[from] SetImageError),
     #[error("Errored whilst recognizing")]
-    RecognizeError(#[from] crate::tesseract::tesseract_plumbing::TessBaseApiRecogniseError),
+    RecognizeError(#[from] TessBaseApiRecogniseError),
     #[error("Errored whilst getting text")]
-    GetTextError(#[from] crate::tesseract::tesseract_plumbing::TessBaseApiGetUtf8TextError),
+    GetTextError(#[from] TessBaseApiGetUtf8TextError),
     #[error("Errored whilst getting HOCR text")]
-    GetHOCRTextError(#[from] crate::tesseract::tesseract_plumbing::TessBaseApiGetHocrTextError),
+    GetHOCRTextError(#[from] TessBaseApiGetHocrTextError),
     #[error("Errored whilst getting TSV text")]
-    GetTsvTextError(#[from] crate::tesseract::tesseract_plumbing::TessBaseApiGetTsvTextError),
+    GetTsvTextError(#[from] TessBaseApiGetTsvTextError),
     #[error("Errored whilst setting frame")]
-    SetFrameError(#[from] crate::tesseract::tesseract_plumbing::TessBaseApiSetImageSafetyError),
+    SetFrameError(#[from] TessBaseApiSetImageSafetyError),
     #[error("Errored whilst setting image from mem")]
     SetImgFromMemError(#[from] crate::leptonica_plumbing::PixReadMemError),
     #[error("Errored whilst setting variable")]
@@ -92,11 +97,11 @@ impl OcrEngineMode {
     }
 }
 
-pub struct Tesseract(crate::tesseract::tesseract_plumbing::TessBaseApi);
+pub struct Tesseract(TessBaseApi);
 
 impl Tesseract {
     pub fn new(datapath: Option<&str>, language: Option<&str>) -> Result<Self, InitializeError> {
-        let mut tess = Tesseract(crate::tesseract::tesseract_plumbing::TessBaseApi::create());
+        let mut tess = Tesseract(TessBaseApi::create());
         let datapath = match datapath {
             Some(i) => Some(CString::new(i)?),
             None => None,
@@ -115,7 +120,7 @@ impl Tesseract {
         language: Option<&str>,
         oem: OcrEngineMode,
     ) -> Result<Self, InitializeError> {
-        let mut tess = Tesseract(crate::tesseract::tesseract_plumbing::TessBaseApi::create());
+        let mut tess = Tesseract(TessBaseApi::create());
         let datapath = match datapath {
             Some(i) => Some(CString::new(i)?),
             None => None,
@@ -142,7 +147,7 @@ impl Tesseract {
         height: i32,
         bytes_per_pixel: i32,
         bytes_per_line: i32,
-    ) -> Result<Self, crate::tesseract::tesseract_plumbing::TessBaseApiSetImageSafetyError> {
+    ) -> Result<Self, TessBaseApiSetImageSafetyError> {
         self.0
             .set_image(frame_data, width, height, bytes_per_pixel, bytes_per_line)?;
         Ok(self)
@@ -173,13 +178,13 @@ impl Tesseract {
     }
     pub fn recognize(
         mut self,
-    ) -> Result<Self, crate::tesseract::tesseract_plumbing::TessBaseApiRecogniseError> {
+    ) -> Result<Self, TessBaseApiRecogniseError> {
         self.0.recognize()?;
         Ok(self)
     }
     pub fn get_text(
         &mut self,
-    ) -> Result<String, crate::tesseract::tesseract_plumbing::TessBaseApiGetUtf8TextError> {
+    ) -> Result<String, TessBaseApiGetUtf8TextError> {
         Ok(self
             .0
             .get_utf8_text()?
@@ -197,7 +202,7 @@ impl Tesseract {
     pub fn get_hocr_text(
         &mut self,
         page: c_int,
-    ) -> Result<String, crate::tesseract::tesseract_plumbing::TessBaseApiGetHocrTextError> {
+    ) -> Result<String, TessBaseApiGetHocrTextError> {
         Ok(self
             .0
             .get_hocr_text(page)?
@@ -212,7 +217,7 @@ impl Tesseract {
     pub fn get_tsv_text(
         &mut self,
         page: c_int,
-    ) -> Result<String, crate::tesseract::tesseract_plumbing::TessBaseApiGetTsvTextError> {
+    ) -> Result<String, TessBaseApiGetTsvTextError> {
         Ok(self
             .0
             .get_tsv_text(page)?

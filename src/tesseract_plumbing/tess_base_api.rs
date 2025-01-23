@@ -1,15 +1,7 @@
 use crate::leptonica_plumbing;
 use crate::leptonica_plumbing::Pix;
-use crate::tesseract::tesseract_plumbing::Text;
-use crate::tesseract_sys::{
-    TessBaseAPIAllWordConfidences, TessBaseAPICreate, TessBaseAPIDelete, TessBaseAPIGetAltoText,
-    TessBaseAPIGetComponentImages, TessBaseAPIGetHOCRText, TessBaseAPIGetInputImage,
-    TessBaseAPIGetLSTMBoxText, TessBaseAPIGetSourceYResolution, TessBaseAPIGetTsvText,
-    TessBaseAPIGetUTF8Text, TessBaseAPIGetWordStrBoxText, TessBaseAPIInit2, TessBaseAPIInit3,
-    TessBaseAPIMeanTextConf, TessBaseAPIRecognize, TessBaseAPISetImage, TessBaseAPISetImage2,
-    TessBaseAPISetRectangle, TessBaseAPISetSourceResolution, TessBaseAPISetVariable,
-    TessDeleteIntArray, TessOcrEngineMode, TessPageIteratorLevel,
-};
+use crate::dl::{get_api, TessBaseAPI as TessSysBaseAPI, TessOcrEngineMode, TessPageIteratorLevel};
+use super::text::Text;
 use std::convert::TryInto;
 use std::ffi::CStr;
 use std::ops::{Deref, DerefMut};
@@ -20,13 +12,13 @@ use thiserror::Error;
 
 /// Wrapper around [`tesseract::TessBaseAPI`](https://tesseract-ocr.github.io/tessapi/5.x/a02438.html)
 #[derive(Debug)]
-pub struct TessBaseApi(*mut crate::tesseract_sys::TessBaseAPI);
+pub struct TessBaseApi(*mut TessSysBaseAPI);
 
 unsafe impl Send for TessBaseApi {}
 
 impl Drop for TessBaseApi {
     fn drop(&mut self) {
-        unsafe { TessBaseAPIDelete(self.0) }
+        unsafe { (get_api().TessBaseAPIDelete)(self.0) }
     }
 }
 
@@ -119,14 +111,14 @@ impl DerefMut for AllWordConfidences {
 impl Drop for AllWordConfidences {
     fn drop(&mut self) {
         unsafe {
-            TessDeleteIntArray(self.0);
+            (get_api().TessDeleteIntArray)(self.0);
         }
     }
 }
 
 impl TessBaseApi {
     pub fn create() -> Self {
-        Self(unsafe { TessBaseAPICreate() })
+        Self(unsafe { (get_api().TessBaseAPICreate)() })
     }
 
     /// Wrapper for [`Init-2`](https://tesseract-ocr.github.io/tessapi/5.x/a02438.html#a965ef2ff51c440756519a3d6f755f34f)
@@ -138,7 +130,7 @@ impl TessBaseApi {
         language: Option<&CStr>,
     ) -> Result<(), TessBaseApiInitError> {
         let ret = unsafe {
-            TessBaseAPIInit3(
+            (get_api().TessBaseAPIInit3)(
                 self.0,
                 datapath.map(CStr::as_ptr).unwrap_or_else(ptr::null),
                 language.map(CStr::as_ptr).unwrap_or_else(ptr::null),
@@ -159,7 +151,7 @@ impl TessBaseApi {
         oem: TessOcrEngineMode,
     ) -> Result<(), TessBaseApiInitError> {
         let ret = unsafe {
-            TessBaseAPIInit2(
+            (get_api().TessBaseAPIInit2)(
                 self.0,
                 datapath.map(CStr::as_ptr).unwrap_or_else(ptr::null),
                 language.map(CStr::as_ptr).unwrap_or_else(ptr::null),
@@ -176,7 +168,7 @@ impl TessBaseApi {
     /// Wrapper for [`SetImage-2`](https://tesseract-ocr.github.io/tessapi/5.x/a02438.html#a0c4c7f05fd58b3665b123232a05545ad)
     pub fn set_image_2(&mut self, pix: &Pix) {
         unsafe {
-            TessBaseAPISetImage2(self.0, *pix.as_ref());
+            (get_api().TessBaseAPISetImage2)(self.0, *pix.as_ref());
         }
     }
 
@@ -208,7 +200,7 @@ impl TessBaseApi {
             }
         }
         unsafe {
-            TessBaseAPISetImage(
+            (get_api().TessBaseAPISetImage)(
                 self.0,
                 image_data.as_ptr(),
                 width,
@@ -224,7 +216,7 @@ impl TessBaseApi {
     /// Set the resolution of the source image in pixels per inch so font size information can be calculated in results. Call this after SetImage().
     pub fn set_source_resolution(&mut self, ppi: c_int) {
         unsafe {
-            TessBaseAPISetSourceResolution(self.0, ppi);
+            (get_api().TessBaseAPISetSourceResolution)(self.0, ppi);
         }
     }
 
@@ -236,7 +228,7 @@ impl TessBaseApi {
         name: &CStr,
         value: &CStr,
     ) -> Result<(), TessBaseApiSetVariableError> {
-        let ret = unsafe { TessBaseAPISetVariable(self.0, name.as_ptr(), value.as_ptr()) };
+        let ret = unsafe { (get_api().TessBaseAPISetVariable)(self.0, name.as_ptr(), value.as_ptr()) };
         match ret {
             1 => Ok(()),
             _ => Err(TessBaseApiSetVariableError {}),
@@ -249,7 +241,7 @@ impl TessBaseApi {
     ///
     /// It could take a progress argument (`monitor`). If there is appetite for this, let me know and I could try and implement it.
     pub fn recognize(&mut self) -> Result<(), TessBaseApiRecogniseError> {
-        let ret = unsafe { TessBaseAPIRecognize(self.0, ptr::null_mut()) };
+        let ret = unsafe { (get_api().TessBaseAPIRecognize)(self.0, ptr::null_mut()) };
         match ret {
             0 => Ok(()),
             _ => Err(TessBaseApiRecogniseError {}),
@@ -263,7 +255,7 @@ impl TessBaseApi {
     ///
     /// This will implicitly call `recognize` if required.
     pub fn get_utf8_text(&mut self) -> Result<Text, TessBaseApiGetUtf8TextError> {
-        let ptr = unsafe { TessBaseAPIGetUTF8Text(self.0) };
+        let ptr = unsafe { (get_api().TessBaseAPIGetUTF8Text)(self.0) };
         if ptr.is_null() {
             Err(TessBaseApiGetUtf8TextError {})
         } else {
@@ -279,7 +271,7 @@ impl TessBaseApi {
     ///
     /// This will implicitly call `recognize` if required.
     pub fn get_hocr_text(&mut self, page: c_int) -> Result<Text, TessBaseApiGetHocrTextError> {
-        let ptr = unsafe { TessBaseAPIGetHOCRText(self.0, page) };
+        let ptr = unsafe { (get_api().TessBaseAPIGetHOCRText)(self.0, page) };
         if ptr.is_null() {
             Err(TessBaseApiGetHocrTextError {})
         } else {
@@ -289,7 +281,7 @@ impl TessBaseApi {
 
     /// Wrapper for [`TessBaseAPIGetInputImage`](https://tesseract-ocr.github.io/tessapi/5.x/a00008.html#ad2c023e46bf634305b3ae8cd0c091a65)
     pub fn get_input_image(&self) -> Option<leptonica_plumbing::BorrowedPix> {
-        let ptr = unsafe { TessBaseAPIGetInputImage(self.0) };
+        let ptr = unsafe { (get_api().TessBaseAPIGetInputImage)(self.0) };
         if ptr.is_null() {
             None
         } else {
@@ -299,14 +291,14 @@ impl TessBaseApi {
 
     /// Wrapper for [`TessBaseAPIGetSourceYResolution`](https://tesseract-ocr.github.io/tessapi/5.x/a00008.html#a2996381d53d41e486b7fb77e071df8ad)
     pub fn get_source_y_resolution(&self) -> c_int {
-        unsafe { TessBaseAPIGetSourceYResolution(self.0) }
+        unsafe { (get_api().TessBaseAPIGetSourceYResolution)(self.0) }
     }
 
     /// Wrapper for [`TessBaseAPISetRectangle`](https://tesseract-ocr.github.io/tessapi/5.x/a00008.html#aeda62b939bbf06f79ec628932a4fed77)
     ///
     /// Restrict recognition to a sub-rectangle of the image. Call after SetImage. Each SetRectangle clears the recogntion results so multiple rectangles can be recognized with the same image.
     pub fn set_rectangle(&mut self, left: c_int, top: c_int, width: c_int, height: c_int) {
-        unsafe { TessBaseAPISetRectangle(self.0, left, top, width, height) }
+        unsafe { (get_api().TessBaseAPISetRectangle)(self.0, left, top, width, height) }
     }
 
     /// Wrapper for [`TessBaseAPIGetAltoText`](https://tesseract-ocr.github.io/tessapi/5.x/a00008.html#a37b6dad313c531901dcca9de5ccb37b3)
@@ -316,7 +308,7 @@ impl TessBaseApi {
         &mut self,
         page_number: c_int,
     ) -> Result<Text, TessBaseApiGetAltoTextError> {
-        let ptr = unsafe { TessBaseAPIGetAltoText(self.0, page_number) };
+        let ptr = unsafe { (get_api().TessBaseAPIGetAltoText)(self.0, page_number) };
         if ptr.is_null() {
             Err(TessBaseApiGetAltoTextError {})
         } else {
@@ -328,7 +320,7 @@ impl TessBaseApi {
     ///
     /// Make a TSV-formatted string from the internal data structures. page_number is 0-based but will appear in the output as 1-based.
     pub fn get_tsv_text(&mut self, page_number: c_int) -> Result<Text, TessBaseApiGetTsvTextError> {
-        let ptr = unsafe { TessBaseAPIGetTsvText(self.0, page_number) };
+        let ptr = unsafe { (get_api().TessBaseAPIGetTsvText)(self.0, page_number) };
         if ptr.is_null() {
             Err(TessBaseApiGetTsvTextError {})
         } else {
@@ -343,7 +335,7 @@ impl TessBaseApi {
         &mut self,
         page_number: c_int,
     ) -> Result<Text, TessBaseApiGetLstmBoxTextError> {
-        let ptr = unsafe { TessBaseAPIGetLSTMBoxText(self.0, page_number) };
+        let ptr = unsafe { (get_api().TessBaseAPIGetLSTMBoxText)(self.0, page_number) };
         if ptr.is_null() {
             Err(TessBaseApiGetLstmBoxTextError {})
         } else {
@@ -360,7 +352,7 @@ impl TessBaseApi {
         &mut self,
         page_number: c_int,
     ) -> Result<Text, TessBaseApiGetWordStrBoxTextError> {
-        let ptr = unsafe { TessBaseAPIGetWordStrBoxText(self.0, page_number) };
+        let ptr = unsafe { (get_api().TessBaseAPIGetWordStrBoxText)(self.0, page_number) };
         if ptr.is_null() {
             Err(TessBaseApiGetWordStrBoxTextError {})
         } else {
@@ -374,7 +366,7 @@ impl TessBaseApi {
     ///
     /// Returns the average word confidence for Tesseract page result.
     pub fn mean_text_conf(&self) -> c_int {
-        unsafe { TessBaseAPIMeanTextConf(self.0) }
+        unsafe { (get_api().TessBaseAPIMeanTextConf)(self.0) }
     }
 
     /// Wrapper for [`TessBaseAPIAllWordConfidences`](https://tesseract-ocr.github.io/tessapi/5.x/a00008.html#a7e35b5ec11f2e38e00b9fe1126cb5c66)
@@ -383,7 +375,7 @@ impl TessBaseApi {
     pub fn all_word_confidences(
         &self,
     ) -> Result<AllWordConfidences, TessBaseApiAllWordConfidencesError> {
-        let ptr = unsafe { TessBaseAPIAllWordConfidences(self.0) };
+        let ptr = unsafe { (get_api().TessBaseAPIAllWordConfidences)(self.0) };
         if ptr.is_null() {
             Err(TessBaseApiAllWordConfidencesError {})
         } else {
@@ -407,7 +399,7 @@ impl TessBaseApi {
         text_only: c_int,
     ) -> Result<leptonica_plumbing::Boxa, TessBaseApiGetComponentImagesError> {
         let ptr = unsafe {
-            TessBaseAPIGetComponentImages(
+            (get_api().TessBaseAPIGetComponentImages)(
                 self.0,
                 level,
                 text_only,

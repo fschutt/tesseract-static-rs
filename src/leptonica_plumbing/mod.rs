@@ -5,10 +5,9 @@ mod boxa;
 mod pix;
 mod pixa;
 
-pub use crate::leptonica_sys;
-use crate::leptonica_sys::{free, getImagelibVersions, getLeptonicaVersion};
-use libc::c_char;
+use libc::{c_char, free};
 use std::ffi::{c_void, CStr};
+use super::dl::get_api;
 
 pub use borrowed_box::BorrowedBox;
 pub use borrowed_pix::BorrowedPix;
@@ -50,7 +49,7 @@ impl Drop for LeptonicaString {
 /// Returns the version identifier as a LeptonicaString.
 pub fn get_version() -> LeptonicaString {
     LeptonicaString {
-        value: unsafe { getLeptonicaVersion() },
+        value: unsafe { (get_api().getLeptonicaVersion)() },
     }
 }
 
@@ -59,6 +58,6 @@ pub fn get_version() -> LeptonicaString {
 /// Returns the image lib version identifiers as a LeptonicaString.
 pub fn get_imagelib_versions() -> LeptonicaString {
     LeptonicaString {
-        value: unsafe { getImagelibVersions() },
+        value: unsafe { (get_api().getImagelibVersions)() },
     }
 }

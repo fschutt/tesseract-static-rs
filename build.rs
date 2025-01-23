@@ -31,14 +31,9 @@ pub fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
     let expected_library_path = Path::new(&out_dir)
     .join("lib")
     .join({
-        #[cfg(not(target_os = "windows"))]
-        {
-            "libleptonica.a"
-        }
-        #[cfg(target_os = "windows")]
-        {
-            "leptonica-1.85.0.lib"
-        }
+        #[cfg(target_os = "macos")] { "libleptonica.dylib" }
+        #[cfg(target_os = "linux")] { "libleptonica.so" }
+        #[cfg(target_os = "windows")] { "leptonica-1.85.0.dll" }
     });
 
     if expected_library_path.exists() { // library already built
@@ -93,7 +88,7 @@ pub fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
         .always_configure(true)
         .configure_arg("-DBUILD_PROG=OFF")
         .configure_arg("-DSW_BUILD=OFF")
-        .configure_arg("-DBUILD_SHARED_LIBS=OFF")
+        .configure_arg("-DBUILD_SHARED_LIBS=ON")
         .configure_arg("-DENABLE_PNG=OFF")
         .configure_arg("-DENABLE_GIF=OFF")
         .configure_arg("-DENABLE_JPEG=OFF")
@@ -108,14 +103,9 @@ pub fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
     let library_path = dst
         .join("lib")
         .join({
-            #[cfg(not(target_os = "windows"))]
-            {
-                "libleptonica.a"
-            }
-            #[cfg(target_os = "windows")]
-            {
-                "leptonica-1.85.0.lib"
-            }
+            #[cfg(target_os = "macos")] { "libleptonica.dylib" }
+            #[cfg(target_os = "linux")] { "libleptonica.so" }
+            #[cfg(target_os = "windows")] { "leptonica-1.85.0.dll" }
         })
         .canonicalize()
         .unwrap();
@@ -169,14 +159,9 @@ pub fn compile_tesseract(source_dir: &Path, disable_avx: bool) -> (PathBuf, Vec<
     let expected_library_path = Path::new(&out_dir)
         .join("lib")
         .join({
-            #[cfg(not(target_os = "windows"))]
-            {
-                "libtesseract.a"
-            }
-            #[cfg(target_os = "windows")]
-            {
-                "tesseract55.lib"
-            }
+            #[cfg(target_os = "macos")] { "libtesseract.dylib" }
+            #[cfg(target_os = "linux")] { "libtesseract.so" }
+            #[cfg(target_os = "windows")] { "tesseract55.dll" }
         });
 
     if expected_library_path.exists() {
@@ -239,7 +224,7 @@ pub fn compile_tesseract(source_dir: &Path, disable_avx: bool) -> (PathBuf, Vec<
         .configure_arg("-DOPENMP_BUILD=OFF")
         .configure_arg("-DBUILD_TRAINING_TOOLS=OFF")
         .configure_arg("-DBUILD_TESTS=OFF")
-        .configure_arg("-DBUILD_SHARED_LIBS=OFF")
+        .configure_arg("-DBUILD_SHARED_LIBS=ON")
         .configure_arg("-DENABLE_LTO=OFF")
         .configure_arg("-DDISABLE_ARCHIVE=ON")
         .configure_arg("-DDISABLE_CURL=ON")
@@ -256,14 +241,9 @@ pub fn compile_tesseract(source_dir: &Path, disable_avx: bool) -> (PathBuf, Vec<
     let library_path = dst
         .join("lib")
         .join({
-            #[cfg(not(target_os = "windows"))]
-            {
-                "libtesseract.a"
-            }
-            #[cfg(target_os = "windows")]
-            {
-                "tesseract55.lib"
-            }
+            #[cfg(target_os = "macos")] { "libtesseract.dylib" }
+            #[cfg(target_os = "linux")] { "libtesseract.so" }
+            #[cfg(target_os = "windows")] { "tesseract55.dll" }
         })
         .canonicalize()
         .unwrap();

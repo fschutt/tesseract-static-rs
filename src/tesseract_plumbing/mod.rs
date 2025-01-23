@@ -1,10 +1,7 @@
 mod tess_base_api;
 mod text;
 
-pub use crate::leptonica_plumbing;
-pub use crate::leptonica_sys;
-pub use crate::tesseract_sys;
-use crate::tesseract_sys::TessVersion;
+use super::dl::get_api;
 use std::ffi::CStr;
 pub use tess_base_api::{
     TessBaseApi, TessBaseApiGetAltoTextError, TessBaseApiGetHocrTextError,
@@ -18,5 +15,5 @@ pub use text::Text;
 ///
 /// Returns the version identifier as a static string.
 pub fn version() -> &'static CStr {
-    unsafe { CStr::from_ptr(TessVersion()) }
+    unsafe { CStr::from_ptr((get_api().TessVersion)()) }
 }
