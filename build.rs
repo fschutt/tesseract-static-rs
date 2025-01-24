@@ -100,22 +100,17 @@ pub fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
         .configure_arg("-DNO_CONSOLE_IO=ON")
         .build();
 
-    let mut library_path = dst
-        .join({
-            #[cfg(target_os = "windows")] { "bin" }
-            #[cfg(not(target_os = "windows"))] { "lib" }
-        });
-    
-    #[cfg(target_os = "windows")] {
-        library_path = library_path.join("Release")
-    }
+    #[cfg(target_os = "windows")]
+    let library_path = dst.join("build").join("bin").join("Release");
+    #[cfg(not(target_os = "windows"))]
+    let library_path = dst.join("lib");
 
     let library_path = library_path
-        .join({
-            #[cfg(target_os = "macos")] { "libleptonica.dylib" }
-            #[cfg(target_os = "linux")] { "libleptonica.so" }
-            #[cfg(target_os = "windows")] { "leptonica-1.85.0.dll" }
-        });
+    .join({
+        #[cfg(target_os = "macos")] { "libleptonica.dylib" }
+        #[cfg(target_os = "linux")] { "libleptonica.so" }
+        #[cfg(target_os = "windows")] { "leptonica-1.85.0.dll" }
+    });
 
     if !library_path.exists() {
         let files = list_files(&dst);
@@ -280,17 +275,31 @@ pub fn compile_tesseract(source_dir: &Path, disable_avx: bool) -> (PathBuf, Vec<
 
     eprintln!("library path tesseract {}", dst.display());
 
-    let library_path = dst
-        .join("lib")
-        .join({
-            #[cfg(target_os = "macos")] { "libtesseract.dylib" }
-            #[cfg(target_os = "linux")] { "libtesseract.so" }
-            #[cfg(target_os = "windows")] { "tesseract55.dll" }
-        })
+    #[cfg(target_os = "windows")]
+    let library_path = dst.join("build").join("bin").join("Release");
+    #[cfg(not(target_os = "windows"))]
+    let library_path = dst.join("lib");
+
+    let library_path = library_path
+    .join({
+        #[cfg(target_os = "macos")] { "libtesseract.dylib" }
+        #[cfg(target_os = "linux")] { "libtesseract.so" }
+        #[cfg(target_os = "windows")] { "tesseract55.dll" }
+    });
+
+    if !library_path.exists() {
+        let files = list_files(&dst);
+        for f in files {
+            println!("{}", f.display());
+        }
+        panic!("tesseract DLL not found in {}", library_path.display());
+    } else {
+        let library_path = library_path
         .canonicalize()
         .unwrap();
 
-    (library_path, vec![dst.join("include").join("tesseract")])
+        (library_path, vec![dst.join("include").join("tesseract")])
+    }
 }
 
 /// NOTE: This function should be called from a build.rs script and 
