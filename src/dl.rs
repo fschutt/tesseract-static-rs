@@ -11,14 +11,14 @@ const TESSERACT_LIB: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/lib/libte
 #[cfg(target_os = "linux")]
 const TESSERACT_LIB: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/lib/libtesseract.so"));
 #[cfg(target_os = "windows")]
-const TESSERACT_LIB: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/lib/tesseract55.dll"));
+const TESSERACT_LIB: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "//build/bin/Release/tesseract55.dll"));
 
 #[cfg(target_os = "macos")]
 const LEPTONICA_LIB: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/lib/libleptonica.dylib"));
 #[cfg(target_os = "linux")]
 const LEPTONICA_LIB: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/lib/libleptonica.so"));
 #[cfg(target_os = "windows")]
-const LEPTONICA_LIB: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/lib/leptonica-1.85.0.dll"));
+const LEPTONICA_LIB: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/build/bin/Release/leptonica-1.85.0.dll"));
 
 lazy_static! {
     /// The one-and-only static instance of `Api`. This is initialized on first access.
