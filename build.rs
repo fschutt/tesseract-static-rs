@@ -28,13 +28,7 @@ pub fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
     let base_dir = base_dir
         .join("leptonica-1.85.0");
 
-    let expected_library_path = Path::new(&out_dir)
-    .join("lib")
-    .join({
-        #[cfg(target_os = "macos")] { "libleptonica.dylib" }
-        #[cfg(target_os = "linux")] { "libleptonica.so" }
-        #[cfg(target_os = "windows")] { "leptonica-1.85.0.dll" }
-    });
+    let expected_library_path = Path::new(&out_dir).join("leptonica.dll");
 
     if expected_library_path.exists() { // library already built
         let ret2 = vec![Path::new(&out_dir).join("include").join("leptonica")];
@@ -123,8 +117,10 @@ pub fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
         .canonicalize()
         .unwrap();
 
-        panic!("leptonica DLL is in {}", library_path.display());
+        let bytes = std::fs::read(&library_path).unwrap();
 
+        std::fs::write(Path::new(&out_dir).join("leptonica.dll"), &bytes).unwrap();
+ 
         (library_path, vec![dst.join("include").join("leptonica")])
     }
 }
@@ -195,14 +191,7 @@ pub fn compile_tesseract(source_dir: &Path, disable_avx: bool) -> (PathBuf, Vec<
 
     let base_dir = base_dir.join("tesseract").join("tesseract-5.5.0");
 
-    let expected_library_path = Path::new(&out_dir)
-        .join("lib")
-        .join({
-            #[cfg(target_os = "macos")] { "libtesseract.dylib" }
-            #[cfg(target_os = "linux")] { "libtesseract.so" }
-            #[cfg(target_os = "windows")] { "tesseract55.dll" }
-        });
-
+    let expected_library_path = Path::new(&out_dir).join("tesseract.dll");
     if expected_library_path.exists() {
         let ret2 = vec![base_dir.join("include").join("tesseract")];
         return (expected_library_path, ret2);
@@ -288,7 +277,7 @@ pub fn compile_tesseract(source_dir: &Path, disable_avx: bool) -> (PathBuf, Vec<
         #[cfg(target_os = "linux")] { "libtesseract.so" }
         #[cfg(target_os = "windows")] { "tesseract55.dll" }
     });
-
+ 
     if !library_path.exists() {
         let files = list_files(&dst);
         for f in files {
@@ -300,8 +289,10 @@ pub fn compile_tesseract(source_dir: &Path, disable_avx: bool) -> (PathBuf, Vec<
         .canonicalize()
         .unwrap();
 
-        panic!("tesseract DLL is in {}", library_path.display());
+        let bytes = std::fs::read(&library_path).unwrap();
 
+        std::fs::write(Path::new(&out_dir).join("tesseract.dll"), &bytes).unwrap();
+ 
         (library_path, vec![dst.join("include").join("tesseract")])
     }
 }
