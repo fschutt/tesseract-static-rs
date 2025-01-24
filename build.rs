@@ -100,11 +100,17 @@ pub fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
         .configure_arg("-DNO_CONSOLE_IO=ON")
         .build();
 
-    let library_path = dst
+    let mut library_path = dst
         .join({
             #[cfg(target_os = "windows")] { "bin" }
             #[cfg(not(target_os = "windows"))] { "lib" }
-        })
+        });
+    
+    #[cfg(target_os = "windows")] {
+        library_path = library_path.join("Release")
+    }
+
+    let library_path = library_path
         .join({
             #[cfg(target_os = "macos")] { "libleptonica.dylib" }
             #[cfg(target_os = "linux")] { "libleptonica.so" }
