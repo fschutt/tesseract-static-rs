@@ -37,9 +37,6 @@ lazy_static! {
         let leptonica_path: PathBuf = tempdir.join(LEPTONICA_FILENAME);
         let tesseract_path: PathBuf = tempdir.join(TESSERACT_FILENAME);
 
-        println!("writing leptonica bytes to {}", leptonica_path.display());
-        println!("writing tesseract bytes to {}", tesseract_path.display());
-
         // Write the embedded bytes to disk:
         fs::write(&leptonica_path, &LEPTONICA_LIB)
             .expect("Failed to write Leptonica library to disk");
@@ -186,7 +183,7 @@ fn init(leptonica_path: &Path, tesseract_path: &Path) -> Result<Api, String> {
 
     let leptonica_handle = Library::open(leptonica_path)
         .map_err(|e| format!("Failed to open Leptonica library at {}: {}", leptonica_path.display(), e))?;
-    
+
     let tesseract_handle = Library::open(tesseract_path)
         .map_err(|e| format!("Failed to open Tesseract library at {}: {}", tesseract_path.display(), e))?;
 

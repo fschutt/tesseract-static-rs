@@ -95,7 +95,7 @@ pub fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
         .build();
 
     #[cfg(target_os = "windows")]
-    let library_path = dst.join("build").join("bin").join("Release");
+    let library_path = dst.join("bin");
     #[cfg(not(target_os = "windows"))]
     let library_path = dst.join("lib");
 
@@ -267,7 +267,7 @@ pub fn compile_tesseract(source_dir: &Path, disable_avx: bool) -> (PathBuf, Vec<
     eprintln!("library path tesseract {}", dst.display());
 
     #[cfg(target_os = "windows")]
-    let library_path = dst.join("build").join("bin").join("Release");
+    let library_path = dst.join("bin");
     #[cfg(not(target_os = "windows"))]
     let library_path = dst.join("lib");
 
