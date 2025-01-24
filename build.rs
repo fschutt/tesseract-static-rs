@@ -123,7 +123,7 @@ pub fn compile_leptonica(source_dir: &Path) -> (PathBuf, Vec<PathBuf>) {
         .canonicalize()
         .unwrap();
 
-        eprintln!("leptonica DLL is in {}", library_path.display());
+        panic!("leptonica DLL is in {}", library_path.display());
 
         (library_path, vec![dst.join("include").join("leptonica")])
     }
@@ -300,7 +300,7 @@ pub fn compile_tesseract(source_dir: &Path, disable_avx: bool) -> (PathBuf, Vec<
         .canonicalize()
         .unwrap();
 
-        eprintln!("tesseract DLL is in {}", library_path.display());
+        panic!("tesseract DLL is in {}", library_path.display());
 
         (library_path, vec![dst.join("include").join("tesseract")])
     }
