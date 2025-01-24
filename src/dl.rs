@@ -4,7 +4,7 @@ use dlopen::raw::Library;
 use std::os::raw::{c_char, c_int, c_uchar};
 use lazy_static::lazy_static;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 const TESSERACT_LIB: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/tesseract.dll"));
 const LEPTONICA_LIB: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/leptonica.dll"));
@@ -18,23 +18,27 @@ lazy_static! {
         #[cfg(target_os = "linux")]
         const LEPTONICA_FILENAME: &str = "libleptonica.so";
         #[cfg(target_os = "windows")]
-        const LEPTONICA_FILENAME: &str = "libleptonica.dll";
+        const LEPTONICA_FILENAME: &str = "leptonica.dll";
 
         #[cfg(target_os = "macos")]
         const TESSERACT_FILENAME: &str = "libtesseract.dylib";
         #[cfg(target_os = "linux")]
         const TESSERACT_FILENAME: &str = "libtesseract.so";
         #[cfg(target_os = "windows")]
-        const TESSERACT_FILENAME: &str = "libtesseract.dll";
+        const TESSERACT_FILENAME: &str = "tesseract.dll";
 
         // 1. Choose/write the library files to a temp directory:
         let tempdir = std::env::current_exe().unwrap().parent().unwrap().join("tesseract");
+        
         fs::create_dir_all(&tempdir)
             .expect("Failed to create temp directory for Tesseract/Leptonica libraries");
 
         // Full paths to the libraries we'll write out:
         let leptonica_path: PathBuf = tempdir.join(LEPTONICA_FILENAME);
         let tesseract_path: PathBuf = tempdir.join(TESSERACT_FILENAME);
+
+        println!("writing leptonica bytes to {}", leptonica_path.display());
+        println!("writing tesseract bytes to {}", tesseract_path.display());
 
         // Write the embedded bytes to disk:
         fs::write(&leptonica_path, &LEPTONICA_LIB)
@@ -43,10 +47,7 @@ lazy_static! {
             .expect("Failed to write Tesseract library to disk");
 
         // 2 & 3. Dynamically load them via `init()`:
-        match init(
-            leptonica_path.to_str().unwrap(),
-            tesseract_path.to_str().unwrap()
-        ) {
+        match init(&leptonica_path, &tesseract_path) {
             Ok(api) => api,
             Err(e) => panic!("Failed to init Tesseract/Leptonica API: {}", e),
         }
@@ -181,11 +182,13 @@ pub struct Api {
     pub TessVersion: unsafe extern "C" fn() -> *const c_char,
 }
 
-fn init(leptonica_path: &str, tesseract_path: &str) -> Result<Api, String> {
+fn init(leptonica_path: &Path, tesseract_path: &Path) -> Result<Api, String> {
+
     let leptonica_handle = Library::open(leptonica_path)
-        .map_err(|e| format!("Failed to open Leptonica library at {}: {}", leptonica_path, e))?;
+        .map_err(|e| format!("Failed to open Leptonica library at {}: {}", leptonica_path.display(), e))?;
+    
     let tesseract_handle = Library::open(tesseract_path)
-        .map_err(|e| format!("Failed to open Tesseract library at {}: {}", tesseract_path, e))?;
+        .map_err(|e| format!("Failed to open Tesseract library at {}: {}", tesseract_path.display(), e))?;
 
     Ok(Api {
         // Leptonica functions
