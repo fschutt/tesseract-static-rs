@@ -1,0 +1,14 @@
+[package]
+name = "rebuild-tesseract"
+version = "0.1.0"
+edition = "2021"
+build = "build.rs"
+publish = false
+
+[dependencies]
+cmake = "0.1.49"
+fs_extra = "1.3.0"
+flate2 = "1.0.25"
+tar = "0.4.38"
+link-cplusplus = "1.0"
+reqwest = { version = "0.11.14", features = ["blocking"] }

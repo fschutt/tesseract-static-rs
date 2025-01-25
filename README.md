@@ -1,8 +1,12 @@
 # tesseract-static
 
-Rust crate to automatically link and build tesseract and leptonica statically
-into a Rust program. Depends on `tesseract-static-build`, which has the needed
-build script to build tesseract / leptonica.
+Rust crate to automatically link and build tesseract and leptonica into a Rust program. 
+
+The crate includes the leptonica.dll / tesseract.dll at compile time, so these binaries
+will be automatically shipped with a build.
+
+To rebuild tesseract / leptonica from source, `cd rebuild-tesseract && cargo run --release`
+then copy the output from `/target/release/leptonica.dll` and `/target/release/tesseract.dll`.
 
 ## Usage 
 
