@@ -1,6 +1,6 @@
 [package]
 name = "tesseract-static"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Felix Schütt <felix.schuett@maps4print.com>"]
 description = "STATICALLY LINKED tesseract + leptonica bindings for easy inclusion of tesseract-ocr in binary applications"
 license = "Apache-2.0"
