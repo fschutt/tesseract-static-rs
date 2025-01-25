@@ -8,6 +8,7 @@ fn main() {
     let parent = std::env::temp_dir();
     std::fs::write(&parent.join("eng.traineddata"), &TRAINING_DATA[..]).unwrap();
 
+    let now = std::time::Instant::now();
     let hocr_xml = Tesseract::new(Some(&parent.display().to_string()), Some("eng"))
         .unwrap()
         .set_image_from_mem(include_bytes!("../testocr.pnm"))
@@ -17,5 +18,7 @@ fn main() {
 
     let hocr = tesseract_static::parse::ParsedHocr::new(&hocr_xml).unwrap();
 
+    let then = std::time::Instant::now();
     println!("{hocr:#?}"); // parsed hOCR text from tesseract, includes rect bounds
+    println!("Image OCRed in {:?}", then - now); 
 }

@@ -17,8 +17,11 @@ lazy_static! {
         const LEPTONICA_FILENAME: &str = "libleptonica.dylib";
         #[cfg(target_os = "linux")]
         const LEPTONICA_FILENAME: &str = "libleptonica.so";
+
+        // NOTE: On windows, tesseract.dll links to "leptonica-1.85.0.dll"
+        // with THAT EXACT NAME.
         #[cfg(target_os = "windows")]
-        const LEPTONICA_FILENAME: &str = "leptonica.dll";
+        const LEPTONICA_FILENAME: &str = "leptonica-1.85.0.dll";
 
         #[cfg(target_os = "macos")]
         const TESSERACT_FILENAME: &str = "libtesseract.dylib";
